@@ -47,7 +47,7 @@ export function createUser(email: string, name: string, password: string, role: 
 }
 
 export function getUserByEmail(email: string): User | null {
-  for (const user of users.values()) {
+  for (const user of Array.from(users.values())) {
     if (user.email === email) {
       return user;
     }
