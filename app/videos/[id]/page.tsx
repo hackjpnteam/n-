@@ -25,30 +25,18 @@ export default function VideoPage() {
   const fetchVideoDetails = async () => {
     setLoading(true);
     try {
-      // This would normally fetch from your API
-      // For now, we'll set dummy data
-      setVideo({
-        _id: params.id,
-        title: 'Pythonで学ぶ機械学習入門',
-        description: 'このコースでは、Pythonを使用した機械学習の基礎を学びます。scikit-learnライブラリを活用し、実践的なプロジェクトを通じて理解を深めていきます。',
-        sourceUrl: 'https://example.com/video.mp4',
-        durationSec: 1800,
-        instructor: '1',
-        stats: { views: 3456, completions: 2341 },
-        learningPoints: [
-          '機械学習の基本概念と用語',
-          'Pythonとscikit-learnの基本的な使い方',
-          '教師あり学習と教師なし学習の違い',
-          '実際のデータセットを使った実践'
-        ]
-      });
-      
-      setInstructor({
-        _id: '1',
-        name: '山田太郎',
-        title: 'AI/機械学習エンジニア',
-        bio: '10年以上のAI開発経験'
-      });
+      // Fetch video details from API
+      const response = await fetch(`/api/videos/${params.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setVideo(data);
+        setInstructor(data.instructor);
+        
+        // Record view in watch history
+        await recordWatchHistory(params.id as string, 0, false);
+      } else {
+        console.error('Failed to fetch video');
+      }
       
       // Check if quiz exists
       setHasQuiz(true); // Show quiz button for all videos
@@ -56,6 +44,24 @@ export default function VideoPage() {
       console.error('Error fetching video details:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const recordWatchHistory = async (videoId: string, progress: number, completed: boolean) => {
+    try {
+      await fetch('/api/watch-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoId,
+          progress,
+          completed
+        })
+      });
+    } catch (error) {
+      console.error('Error recording watch history:', error);
     }
   };
 

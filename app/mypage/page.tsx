@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaPlay } from 'react-icons/fa';
+import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaPlay, FaHistory } from 'react-icons/fa';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -13,12 +13,32 @@ export default function MyPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [watchedVideos, setWatchedVideos] = useState<any[]>([]);
+  const [recentVideos, setRecentVideos] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/login');
     }
   }, [loading, user, router]);
+
+  // Fetch watch history from API
+  useEffect(() => {
+    if (user) {
+      fetchWatchHistory();
+    }
+  }, [user]);
+
+  const fetchWatchHistory = async () => {
+    try {
+      const response = await fetch('/api/watch-history');
+      if (response.ok) {
+        const data = await response.json();
+        setRecentVideos(data.history || []);
+      }
+    } catch (error) {
+      console.error('Error fetching watch history:', error);
+    }
+  };
 
   useEffect(() => {
     const localProgress = JSON.parse(localStorage.getItem('videoProgress') || '{}');
@@ -93,6 +113,68 @@ export default function MyPage() {
           <h3 className="text-3xl font-bold mb-1">{Math.round((watchedVideos.length / 6) * 100)}%</h3>
           <p className="text-purple-100">全体進捗</p>
         </div>
+      </div>
+
+      {/* 直近の視聴履歴セクション */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <FaHistory className="text-orange-600 text-xl" />
+          <h2 className="text-xl font-bold text-gray-900">直近の視聴研修</h2>
+        </div>
+        
+        {recentVideos.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentVideos.slice(0, 6).map((item: any) => (
+              <Link
+                key={item._id}
+                href={`/videos/${item.video?._id}`}
+                className="group"
+              >
+                <div className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group-hover:shadow-md">
+                  <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden">
+                    {item.video?.thumbnailUrl && (
+                      <img 
+                        src={item.video.thumbnailUrl} 
+                        alt={item.video?.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+                    {item.video?.title || '動画タイトル'}
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-2">
+                    {item.video?.instructor?.name || '講師名'}
+                  </p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">
+                      {new Date(item.watchedAt).toLocaleDateString('ja-JP')}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full ${
+                      item.completed 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {item.completed ? '完了' : `${item.progress}%`}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <FaHistory className="text-4xl text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 mb-4">まだ視聴した研修がありません</p>
+            <Link
+              href="/videos"
+              className="inline-flex items-center gap-2 bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all"
+            >
+              <FaPlay />
+              研修動画を見る
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
