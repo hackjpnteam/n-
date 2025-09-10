@@ -48,7 +48,8 @@ const InstructorSchema = new Schema<IInstructor>({
   timestamps: true
 });
 
-InstructorSchema.index({ name: 'text', tags: 1 });
+InstructorSchema.index({ name: 'text', bio: 'text', title: 'text' });
+InstructorSchema.index({ tags: 1 });
 InstructorSchema.index({ createdAt: -1 });
 
 const Instructor: Model<IInstructor> = mongoose.models.Instructor || mongoose.model<IInstructor>('Instructor', InstructorSchema);
