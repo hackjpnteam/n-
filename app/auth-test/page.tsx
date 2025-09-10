@@ -58,7 +58,7 @@ export default function AuthTestPage() {
             <button onClick={testLogin} className="btn-success">
               デモログイン
             </button>
-            <button onClick={testLogout} className="bg-red-600 text-white px-4 py-2 rounded-xl">
+            <button onClick={testLogout} className="bg-theme-600 text-white px-4 py-2 rounded-xl">
               ログアウト
             </button>
           </div>

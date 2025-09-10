@@ -52,21 +52,21 @@ export default function AnalyticsPage() {
 
       {/* 全体統計 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="rounded-2xl p-6 bg-orange-50">
-          <h3 className="text-sm font-medium text-orange-600 mb-2">総動画数</h3>
-          <p className="text-3xl font-bold text-orange-900">{data.overview.totalVideos}</p>
+        <div className="rounded-2xl p-6 bg-theme-50">
+          <h3 className="text-sm font-medium text-theme-600 mb-2">総動画数</h3>
+          <p className="text-3xl font-bold text-theme-900">{data.overview.totalVideos}</p>
         </div>
-        <div className="rounded-2xl p-6 bg-orange-50">
-          <h3 className="text-sm font-medium text-orange-600 mb-2">視聴完了数</h3>
-          <p className="text-3xl font-bold text-orange-900">{data.overview.totalCompletions}</p>
+        <div className="rounded-2xl p-6 bg-theme-50">
+          <h3 className="text-sm font-medium text-theme-600 mb-2">視聴完了数</h3>
+          <p className="text-3xl font-bold text-theme-900">{data.overview.totalCompletions}</p>
         </div>
-        <div className="rounded-2xl p-6 bg-red-50">
-          <h3 className="text-sm font-medium text-red-600 mb-2">クイズ受験数</h3>
-          <p className="text-3xl font-bold text-red-900">{data.overview.totalQuizAttempts}</p>
+        <div className="rounded-2xl p-6 bg-theme-50">
+          <h3 className="text-sm font-medium text-theme-600 mb-2">クイズ受験数</h3>
+          <p className="text-3xl font-bold text-theme-900">{data.overview.totalQuizAttempts}</p>
         </div>
-        <div className="rounded-2xl p-6 bg-orange-50">
-          <h3 className="text-sm font-medium text-orange-600 mb-2">完了率</h3>
-          <p className="text-3xl font-bold text-orange-900">{data.overview.overallCompletionRate}%</p>
+        <div className="rounded-2xl p-6 bg-theme-50">
+          <h3 className="text-sm font-medium text-theme-600 mb-2">完了率</h3>
+          <p className="text-3xl font-bold text-theme-900">{data.overview.overallCompletionRate}%</p>
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default function AnalyticsPage() {
               onClick={() => setActiveTab('users')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'users'
-                  ? 'bg-orange-600 text-white'
+                  ? 'bg-theme-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -91,7 +91,7 @@ export default function AnalyticsPage() {
               onClick={() => setActiveTab('videos')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'videos'
-                  ? 'bg-orange-600 text-white'
+                  ? 'bg-theme-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -161,7 +161,7 @@ export default function AnalyticsPage() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-orange-600 h-2 rounded-full"
+                            className="bg-theme-600 h-2 rounded-full"
                             style={{ width: `${user.completionRate}%` }}
                           />
                         </div>
@@ -204,7 +204,7 @@ export default function AnalyticsPage() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-orange-600 h-2 rounded-full"
+                            className="bg-theme-600 h-2 rounded-full"
                             style={{ width: `${stat.completionRate}%` }}
                           />
                         </div>
@@ -252,7 +252,7 @@ export default function AnalyticsPage() {
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       stat.passRate >= 80 ? 'bg-green-100 text-green-800' :
                       stat.passRate >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      'bg-theme-100 text-theme-800'
                     }`}>
                       {stat.passRate}%
                     </span>

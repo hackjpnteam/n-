@@ -71,7 +71,7 @@ export default function AddInstructorModal({ isOpen, onClose, onAdd }: AddInstru
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">新しい講師を追加</h2>
+            <h2 className="text-2xl font-bold text-gray-900">新しいゲストを追加</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 p-2"
@@ -83,7 +83,7 @@ export default function AddInstructorModal({ isOpen, onClose, onAdd }: AddInstru
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                講師名
+                ゲスト名
               </label>
               <input
                 type="text"
@@ -91,7 +91,7 @@ export default function AddInstructorModal({ isOpen, onClose, onAdd }: AddInstru
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="講師の名前を入力"
+                placeholder="ゲストの名前を入力"
               />
             </div>
 
@@ -119,7 +119,7 @@ export default function AddInstructorModal({ isOpen, onClose, onAdd }: AddInstru
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="講師の経歴や専門分野について説明してください"
+                placeholder="ゲストの経歴や専門分野について説明してください"
               />
             </div>
 
@@ -189,7 +189,7 @@ export default function AddInstructorModal({ isOpen, onClose, onAdd }: AddInstru
                 className="flex-1 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition-all font-medium flex items-center justify-center gap-2"
               >
                 <FaPlus />
-                講師を追加
+                ゲストを追加
               </button>
               <button
                 type="button"

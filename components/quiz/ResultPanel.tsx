@@ -55,7 +55,7 @@ export default function ResultPanel({ result, quiz, answers, onRetake }: ResultP
         <div className={`rounded-2xl p-8 text-center ${
           result.passed 
             ? 'bg-gradient-to-r from-green-500 to-green-600' 
-            : 'bg-gradient-to-r from-red-500 to-red-600'
+            : 'bg-gradient-to-r from-theme-500 to-theme-600'
         } text-white`}>
           <div className="mb-4">
             {result.passed ? (
@@ -81,7 +81,7 @@ export default function ResultPanel({ result, quiz, answers, onRetake }: ResultP
         <div className="mt-6 flex justify-center gap-4">
           <button
             onClick={handleRetake}
-            className="rounded-2xl px-6 py-3 font-semibold shadow bg-orange-600 text-white hover:bg-orange-700 transition-all flex items-center gap-2"
+            className="rounded-2xl px-6 py-3 font-semibold shadow bg-theme-600 text-white hover:bg-theme-700 transition-all flex items-center gap-2"
           >
             <FaRedoAlt />
             再受験
@@ -115,7 +115,7 @@ export default function ResultPanel({ result, quiz, answers, onRetake }: ResultP
                       <FaCheckCircle /> 正解
                     </span>
                   ) : (
-                    <span className="text-red-600 font-semibold flex items-center gap-1">
+                    <span className="text-theme-600 font-semibold flex items-center gap-1">
                       <FaTimesCircle /> 不正解
                     </span>
                   )}

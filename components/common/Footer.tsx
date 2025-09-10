@@ -16,7 +16,7 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">学習コンテンツ</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><Link href="/videos" className="hover:text-white">動画一覧</Link></li>
-              <li><Link href="/instructors" className="hover:text-white">講師一覧</Link></li>
+              <li><Link href="/instructors" className="hover:text-white">ゲスト一覧</Link></li>
               <li><a href="#" className="hover:text-white">カテゴリ</a></li>
             </ul>
           </div>

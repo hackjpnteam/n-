@@ -82,7 +82,7 @@ export default function InstructorsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">講師一覧</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">ゲスト一覧</h1>
 
       <div className="mb-8 space-y-4">
         <form onSubmit={handleSearch} className="flex gap-4">
@@ -91,7 +91,7 @@ export default function InstructorsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="講師名やカテゴリで検索"
+              placeholder="ゲスト名やカテゴリで検索"
               className="input-field pl-10"
             />
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -111,7 +111,7 @@ export default function InstructorsPage() {
             {selectedTags.length > 0 && (
               <button
                 onClick={clearFilters}
-                className="text-sm text-orange-600 hover:text-blue-800 underline"
+                className="text-sm text-theme-600 hover:text-theme-800 underline"
               >
                 クリア
               </button>
@@ -124,7 +124,7 @@ export default function InstructorsPage() {
                 onClick={() => toggleTag(tag)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   selectedTags.includes(tag)
-                    ? 'bg-orange-600 text-white'
+                    ? 'bg-theme-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >

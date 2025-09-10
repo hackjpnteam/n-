@@ -59,10 +59,10 @@ export default function AdminDashboard() {
       <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <FaUsers className="text-3xl" />
-          <span className="text-green-100">講師</span>
+          <span className="text-green-100">ゲスト</span>
         </div>
         <h3 className="text-3xl font-bold mb-1">{instructors.length}</h3>
-        <p className="text-green-100">人の講師</p>
+        <p className="text-green-100">人のゲスト</p>
         <button
           onClick={() => setActiveTab('instructors')}
           className="inline-block mt-4 text-sm bg-white/20 px-3 py-1 rounded-lg hover:bg-white/30 transition-all"
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
         <h2 className="text-2xl font-bold text-gray-900">動画管理</h2>
         <button 
           onClick={() => setShowAddVideoModal(true)}
-          className="bg-orange-600 text-white px-4 py-2 rounded-xl hover:bg-orange-700 transition-all flex items-center gap-2"
+          className="bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all flex items-center gap-2"
         >
           <FaPlus />
           新しい動画を追加
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">タイトル</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">講師</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">ゲスト</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">時間</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">視聴回数</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
@@ -124,10 +124,10 @@ export default function AdminDashboard() {
                 <td className="px-6 py-4 text-sm text-gray-900">{video.stats.views}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="text-orange-600 hover:text-orange-700 p-1">
+                    <button className="text-theme-600 hover:text-theme-700 p-1">
                       <FaEdit />
                     </button>
-                    <button className="text-red-600 hover:text-red-700 p-1">
+                    <button className="text-theme-600 hover:text-theme-700 p-1">
                       <FaTrash />
                     </button>
                   </div>
@@ -143,13 +143,13 @@ export default function AdminDashboard() {
   const renderInstructors = () => (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">講師管理</h2>
+        <h2 className="text-2xl font-bold text-gray-900">ゲスト管理</h2>
         <button 
           onClick={() => setShowAddInstructorModal(true)}
           className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-all flex items-center gap-2"
         >
           <FaPlus />
-          新しい講師を追加
+          新しいゲストを追加
         </button>
       </div>
       
@@ -186,11 +186,11 @@ export default function AdminDashboard() {
             </div>
             
             <div className="flex items-center gap-2">
-              <button className="flex-1 text-orange-600 hover:text-orange-700 text-sm border border-blue-200 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-1">
+              <button className="flex-1 text-theme-600 hover:text-theme-700 text-sm border border-blue-200 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-1">
                 <FaEdit />
                 編集
               </button>
-              <button className="text-red-600 hover:text-red-700 text-sm border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-all">
+              <button className="text-theme-600 hover:text-theme-700 text-sm border border-theme-200 px-3 py-2 rounded-lg hover:bg-theme-50 transition-all">
                 <FaTrash />
               </button>
             </div>
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
           {[
             { id: 'overview', label: '概要', icon: FaChartBar },
             { id: 'videos', label: '動画管理', icon: FaVideo },
-            { id: 'instructors', label: '講師管理', icon: FaUsers }
+            { id: 'instructors', label: 'ゲスト管理', icon: FaUsers }
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-white text-orange-600 shadow-sm'
+                    ? 'bg-white text-theme-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >

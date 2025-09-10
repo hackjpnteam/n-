@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function HelpPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -29,7 +31,7 @@ export default function HelpPage() {
               上記で解決しない場合は、お問い合わせページからご連絡ください。
               営業時間内（平日9:00-18:00）に対応いたします。
             </p>
-            <Link href="/contact" className="inline-block mt-4 text-orange-600 hover:text-blue-800 font-medium">
+            <Link href="/contact" className="inline-block mt-4 text-theme-600 hover:text-theme-800 font-medium">
               お問い合わせ →
             </Link>
           </div>

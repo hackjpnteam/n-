@@ -124,9 +124,9 @@ export default function QuizRunner({ quiz, videoId }: QuizRunnerProps) {
         
         <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
           <div className="text-sm font-medium text-gray-700">
-            進捗: <span className="text-orange-600 font-bold">{answeredCount}</span> / {quiz.questions.length} 問回答済み
+            進捗: <span className="text-theme-600 font-bold">{answeredCount}</span> / {quiz.questions.length} 問回答済み
           </div>
-          <div className={`text-xl font-bold ${timeLeft < 60 ? 'text-red-600 animate-pulse' : 'text-gray-700'}`}>
+          <div className={`text-xl font-bold ${timeLeft < 60 ? 'text-theme-600 animate-pulse' : 'text-gray-700'}`}>
             残り時間: {formatTime(timeLeft)}
           </div>
         </div>

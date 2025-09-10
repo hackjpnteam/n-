@@ -66,12 +66,12 @@ export default function InstructorCard({ instructor, videoCount = 0, totalViews 
             </a>
           )}
           {instructor.socials.linkedin && (
-            <a href={instructor.socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-orange-600">
+            <a href={instructor.socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-theme-600">
               <FaLinkedin />
             </a>
           )}
           {instructor.socials.youtube && (
-            <a href={instructor.socials.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-red-600">
+            <a href={instructor.socials.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-theme-600">
               <FaYoutube />
             </a>
           )}

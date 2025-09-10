@@ -58,7 +58,7 @@ export default function QuestionCard({
     
     if (correct && selected) return 'border-green-500 bg-green-50';
     if (correct && !selected) return 'border-green-500 bg-green-50 opacity-60';
-    if (!correct && selected) return 'border-red-500 bg-red-50';
+    if (!correct && selected) return 'border-theme-500 bg-theme-50';
     return 'border-gray-300 opacity-50';
   };
 

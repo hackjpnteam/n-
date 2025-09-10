@@ -98,7 +98,7 @@ export default function MyPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
-            <FaVideo className="text-orange-600 text-xl" />
+            <FaVideo className="text-theme-600 text-xl" />
             <h2 className="text-xl font-bold text-gray-900">視聴完了動画</h2>
           </div>
           
@@ -117,7 +117,7 @@ export default function MyPage() {
                   <div className="flex gap-2">
                     <Link
                       href={`/videos/${video.videoId}`}
-                      className="text-sm bg-orange-600 text-white px-3 py-1 rounded-lg hover:bg-orange-700 transition-all"
+                      className="text-sm bg-theme-600 text-white px-3 py-1 rounded-lg hover:bg-theme-700 transition-all"
                     >
                       再視聴
                     </Link>
@@ -137,7 +137,7 @@ export default function MyPage() {
               <p className="text-gray-600 mb-4">まだ視聴完了した動画がありません</p>
               <Link
                 href="/videos"
-                className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-xl hover:bg-orange-700 transition-all"
+                className="inline-flex items-center gap-2 bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all"
               >
                 <FaPlay />
                 動画を見る
@@ -155,7 +155,7 @@ export default function MyPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
               <div className="flex items-center gap-3">
-                <FaClock className="text-orange-500" />
+                <FaClock className="text-theme-500" />
                 <span className="font-medium text-gray-700">総学習時間</span>
               </div>
               <span className="text-xl font-bold text-gray-900">{watchedVideos.length * 45}分</span>

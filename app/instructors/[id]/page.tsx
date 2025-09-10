@@ -54,7 +54,7 @@ export default function InstructorDetailPage() {
   if (!instructor) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <p className="text-center text-gray-600">講師が見つかりませんでした</p>
+        <p className="text-center text-gray-600">ゲストが見つかりませんでした</p>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function InstructorDetailPage() {
               >
                 <div className="relative aspect-video">
                   <Image
-                    src={video.thumbnailUrl || '/default-thumbnail.jpg'}
+                    src={video.thumbnailUrl || '/video-thumbnail.png'}
                     alt={video.title}
                     fill
                     className="object-cover"

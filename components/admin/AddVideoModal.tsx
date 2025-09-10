@@ -89,7 +89,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 placeholder="動画のタイトルを入力"
               />
             </div>
@@ -103,7 +103,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 placeholder="動画の説明を入力"
               />
             </div>
@@ -117,7 +117,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                   required
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 >
                   <option value="">カテゴリーを選択</option>
                   <option value="プログラミング">プログラミング</option>
@@ -130,15 +130,15 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  講師
+                  ゲスト
                 </label>
                 <select
                   required
                   value={formData.instructorId}
                   onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 >
-                  <option value="">講師を選択</option>
+                  <option value="">ゲストを選択</option>
                   {mockInstructors.map((instructor) => (
                     <option key={instructor._id} value={instructor._id}>
                       {instructor.name}
@@ -157,7 +157,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                 required
                 value={formData.videoUrl}
                 onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 placeholder="https://example.com/video.mp4"
               />
             </div>
@@ -170,7 +170,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                 type="url"
                 value={formData.thumbnailUrl}
                 onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 placeholder="https://example.com/thumbnail.jpg"
               />
             </div>
@@ -186,7 +186,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                   min="1"
                   value={Math.floor(formData.durationSec / 60)}
                   onChange={(e) => setFormData({ ...formData, durationSec: parseInt(e.target.value) * 60 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 />
               </div>
 
@@ -197,7 +197,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                 <select
                   value={formData.difficulty}
                   onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
                 >
                   <option value="beginner">初級</option>
                   <option value="intermediate">中級</option>
@@ -209,7 +209,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
             <div className="flex items-center gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-orange-600 text-white py-3 rounded-xl hover:bg-orange-700 transition-all font-medium flex items-center justify-center gap-2"
+                className="flex-1 bg-theme-600 text-white py-3 rounded-xl hover:bg-theme-700 transition-all font-medium flex items-center justify-center gap-2"
               >
                 <FaUpload />
                 動画を追加

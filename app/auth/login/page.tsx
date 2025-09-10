@@ -74,7 +74,7 @@ export default function LoginPage() {
       }
 
       toast.success('ログインしました！');
-      router.push('/videos');
+      router.push('/mypage');
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error instanceof Error ? error.message : 'ログインに失敗しました');
@@ -126,12 +126,12 @@ export default function LoginPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    className={`w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-theme-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                     placeholder="example@email.com"
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  <p className="mt-1 text-sm text-theme-600">{errors.email}</p>
                 )}
               </div>
 
@@ -150,18 +150,18 @@ export default function LoginPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    className={`w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-theme-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                     placeholder="パスワード"
                   />
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                  <p className="mt-1 text-sm text-theme-600">{errors.password}</p>
                 )}
               </div>
             </div>
 
             {errors.submit && (
-              <div className="mt-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+              <div className="mt-4 p-3 rounded-lg bg-theme-50 text-theme-700 text-sm">
                 {errors.submit}
               </div>
             )}
@@ -170,7 +170,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-[1.02]"
+                className="w-full bg-gradient-to-r from-theme-600 to-theme-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-theme-700 hover:to-theme-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-[1.02]"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
@@ -215,7 +215,7 @@ export default function LoginPage() {
                 </span>
                 <Link
                   href="/auth/register"
-                  className="text-sm font-medium text-orange-600 hover:text-blue-500"
+                  className="text-sm font-medium text-theme-600 hover:text-theme-500"
                 >
                   新規登録
                 </Link>

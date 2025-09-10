@@ -119,7 +119,7 @@ export default function VideoPage() {
           
           <div className="flex items-center gap-6 mb-6 text-sm text-gray-600">
             <span className="flex items-center gap-1">
-              <FaEye className="text-orange-500" />
+              <FaEye className="text-theme-500" />
               {video.stats?.views || 0}回視聴
             </span>
             <span className="flex items-center gap-1">
@@ -136,7 +136,7 @@ export default function VideoPage() {
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">視聴進捗</span>
-              <span className="text-sm font-bold text-orange-600">{watchedPercentage}%</span>
+              <span className="text-sm font-bold text-theme-600">{watchedPercentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
@@ -155,7 +155,7 @@ export default function VideoPage() {
           {video.learningPoints && (
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FaBook className="text-orange-500" />
+                <FaBook className="text-theme-500" />
                 この動画で学べること
               </h3>
               <ul className="space-y-2">
@@ -191,7 +191,7 @@ export default function VideoPage() {
             <h4 className="text-sm font-semibold text-gray-700 mb-2">コース完了の条件:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li className="flex items-center gap-2">
-                <FaPlayCircle className="text-orange-500" />
+                <FaPlayCircle className="text-theme-500" />
                 動画を最後まで視聴
               </li>
               {hasQuiz && (
@@ -208,8 +208,8 @@ export default function VideoPage() {
           {instructor && (
             <div className="rounded-2xl p-6 shadow-lg bg-gradient-to-br from-white to-blue-50 mb-6">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FaUser className="text-orange-500" />
-                講師情報
+                <FaUser className="text-theme-500" />
+                ゲスト情報
               </h3>
               <Link
                 href={`/instructors/${instructor._id}`}

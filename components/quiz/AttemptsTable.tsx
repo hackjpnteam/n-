@@ -47,7 +47,7 @@ export default function AttemptsTable({ attempts, passThreshold }: AttemptsTable
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {format(new Date(attempt.takenAt), 'yyyy年MM月dd日 HH:mm', { locale: ja })}
                 {index === 0 && (
-                  <span className="ml-2 text-xs text-orange-600 font-semibold">最新</span>
+                  <span className="ml-2 text-xs text-theme-600 font-semibold">最新</span>
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -64,7 +64,7 @@ export default function AttemptsTable({ attempts, passThreshold }: AttemptsTable
                     合格
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-red-600 font-semibold">
+                  <span className="flex items-center gap-1 text-theme-600 font-semibold">
                     <FaTimesCircle />
                     不合格
                   </span>

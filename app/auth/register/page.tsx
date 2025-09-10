@@ -131,12 +131,12 @@ export default function RegisterPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-3 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    className={`w-full pl-10 pr-3 py-3 border ${errors.name ? 'border-theme-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                     placeholder="山田太郎"
                   />
                 </div>
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  <p className="mt-1 text-sm text-theme-600">{errors.name}</p>
                 )}
               </div>
 
@@ -155,12 +155,12 @@ export default function RegisterPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    className={`w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-theme-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                     placeholder="example@email.com"
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  <p className="mt-1 text-sm text-theme-600">{errors.email}</p>
                 )}
               </div>
 
@@ -179,12 +179,12 @@ export default function RegisterPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    className={`w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-theme-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                     placeholder="6文字以上"
                   />
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                  <p className="mt-1 text-sm text-theme-600">{errors.password}</p>
                 )}
               </div>
 
@@ -203,18 +203,18 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    className={`w-full pl-10 pr-3 py-3 border ${errors.confirmPassword ? 'border-theme-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                     placeholder="パスワードを再入力"
                   />
                 </div>
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                  <p className="mt-1 text-sm text-theme-600">{errors.confirmPassword}</p>
                 )}
               </div>
             </div>
 
             {errors.submit && (
-              <div className="mt-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+              <div className="mt-4 p-3 rounded-lg bg-theme-50 text-theme-700 text-sm">
                 {errors.submit}
               </div>
             )}
@@ -223,7 +223,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-[1.02]"
+                className="w-full bg-gradient-to-r from-theme-600 to-theme-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-theme-700 hover:to-theme-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-[1.02]"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
@@ -255,7 +255,7 @@ export default function RegisterPage() {
                 </span>
                 <Link
                   href="/auth/login"
-                  className="text-sm font-medium text-orange-600 hover:text-blue-500"
+                  className="text-sm font-medium text-theme-600 hover:text-theme-500"
                 >
                   ログイン
                 </Link>
@@ -267,9 +267,9 @@ export default function RegisterPage() {
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-500">
             登録することで、
-            <Link href="/terms" className="text-orange-600 hover:text-blue-500">利用規約</Link>
+            <Link href="/terms" className="text-theme-600 hover:text-theme-500">利用規約</Link>
             と
-            <Link href="/privacy" className="text-orange-600 hover:text-blue-500">プライバシーポリシー</Link>
+            <Link href="/privacy" className="text-theme-600 hover:text-theme-500">プライバシーポリシー</Link>
             に同意したものとみなされます。
           </p>
         </div>

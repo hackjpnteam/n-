@@ -19,7 +19,7 @@ async function seed() {
       Question.deleteMany({})
     ]);
 
-    // 講師データを作成
+    // ゲストデータを作成
     const instructors = await Instructor.insertMany([
       {
         name: '山田太郎',
@@ -57,7 +57,7 @@ async function seed() {
       }
     ]);
 
-    console.log(`✅ ${instructors.length}名の講師を作成しました`);
+    console.log(`✅ ${instructors.length}名のゲストを作成しました`);
 
     // 動画データを作成
     const videos = await Video.insertMany([
@@ -65,7 +65,7 @@ async function seed() {
         title: 'Python機械学習入門 - 基礎から実践まで',
         description: 'Pythonを使った機械学習の基礎を学びます。scikit-learnを使った分類・回帰の実装方法を詳しく解説します。',
         durationSec: 3600,
-        thumbnailUrl: '/videos/python-ml-basics.jpg',
+        thumbnailUrl: '/video-thumbnail.png',
         sourceUrl: '/videos/python-ml-basics.mp4',
         instructor: instructors[0]._id,
         stats: { views: 1250, avgWatchRate: 85.5 }
@@ -74,7 +74,7 @@ async function seed() {
         title: 'ディープラーニング実践講座 - TensorFlow入門',
         description: 'TensorFlowを使ったディープラーニングの実装方法を学びます。画像認識モデルの構築を通して理解を深めます。',
         durationSec: 4500,
-        thumbnailUrl: '/videos/tensorflow-intro.jpg',
+        thumbnailUrl: '/video-thumbnail.png',
         sourceUrl: '/videos/tensorflow-intro.mp4',
         instructor: instructors[0]._id,
         stats: { views: 890, avgWatchRate: 78.2 }
@@ -83,7 +83,7 @@ async function seed() {
         title: 'デジタルマーケティング戦略設計',
         description: '効果的なデジタルマーケティング戦略の立て方を学びます。ターゲット設定からKPI設計まで体系的に解説。',
         durationSec: 2700,
-        thumbnailUrl: '/videos/digital-marketing-strategy.jpg',
+        thumbnailUrl: '/video-thumbnail.png',
         sourceUrl: '/videos/digital-marketing-strategy.mp4',
         instructor: instructors[1]._id,
         stats: { views: 2100, avgWatchRate: 92.1 }
@@ -92,7 +92,7 @@ async function seed() {
         title: 'SEO対策完全ガイド - 2024年版',
         description: '最新のSEO対策手法を詳しく解説。Googleアルゴリズムの変化に対応した効果的なSEO戦略を学びます。',
         durationSec: 3300,
-        thumbnailUrl: '/videos/seo-guide-2024.jpg',
+        thumbnailUrl: '/video-thumbnail.png',
         sourceUrl: '/videos/seo-guide-2024.mp4',
         instructor: instructors[1]._id,
         stats: { views: 1680, avgWatchRate: 88.7 }
@@ -101,7 +101,7 @@ async function seed() {
         title: 'ビジネス英語プレゼンテーション術',
         description: '効果的なビジネス英語プレゼンテーションの方法を学びます。構成から発音まで実践的にマスターしましょう。',
         durationSec: 2400,
-        thumbnailUrl: '/videos/business-english-presentation.jpg',
+        thumbnailUrl: '/video-thumbnail.png',
         sourceUrl: '/videos/business-english-presentation.mp4',
         instructor: instructors[2]._id,
         stats: { views: 950, avgWatchRate: 86.3 }
@@ -110,7 +110,7 @@ async function seed() {
         title: 'TOEIC攻略法 - スコア900点を目指す',
         description: 'TOEIC高得点を狙うための効率的な学習方法を解説。各パートの攻略法と時間配分のコツを詳しく紹介。',
         durationSec: 3900,
-        thumbnailUrl: '/videos/toeic-strategy.jpg',
+        thumbnailUrl: '/video-thumbnail.png',
         sourceUrl: '/videos/toeic-strategy.mp4',
         instructor: instructors[2]._id,
         stats: { views: 1450, avgWatchRate: 91.8 }
@@ -262,7 +262,7 @@ async function seed() {
     console.log('🎉 シードデータの作成が完了しました！');
     console.log(`
 📊 作成されたデータ:
-- 講師: ${instructors.length}名
+- ゲスト: ${instructors.length}名
 - 動画: ${videos.length}本  
 - クイズ: ${quizData.length}件
 `);

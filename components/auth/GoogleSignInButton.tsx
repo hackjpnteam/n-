@@ -36,7 +36,7 @@ export default function GoogleSignInButton({ callbackUrl = '/' }: GoogleSignInBu
       onClick={handleGoogleSignIn}
       className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
     >
-      <FaGoogle className="text-red-500 text-lg" />
+      <FaGoogle className="text-theme-500 text-lg" />
       <span>Googleでログイン</span>
     </button>
   )

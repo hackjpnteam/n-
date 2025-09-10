@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload }: any) => {
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="font-semibold text-gray-800">{payload[0].payload.name}</p>
         <p className="text-sm text-gray-600 mt-1">
-          完了率: <span className="font-bold text-orange-600">{payload[0].value}%</span>
+          完了率: <span className="font-bold text-theme-600">{payload[0].value}%</span>
         </p>
       </div>
     );
@@ -70,8 +70,8 @@ export default function CompletionRateChart({ data, title = "完了率ランキ�
           >
             <defs>
               <linearGradient id="completionGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#ea580c" />
-                <stop offset="100%" stopColor="#dc2626" />
+                <stop offset="0%" stopColor="#3881d2" />
+                <stop offset="100%" stopColor="#2f6fc4" />
               </linearGradient>
             </defs>
             
@@ -103,18 +103,18 @@ export default function CompletionRateChart({ data, title = "完了率ランキ�
             
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: 'rgba(234, 88, 12, 0.05)' }}
+              cursor={{ fill: 'rgba(56, 129, 210, 0.05)' }}
             />
             
             <ReferenceLine
               x={80}
-              stroke="#ea580c"
+              stroke="#3881d2"
               strokeDasharray="5 5"
               strokeOpacity={0.7}
               label={{
                 value: "目標: 80%",
                 position: "insideTopRight",
-                fill: "#ea580c",
+                fill: "#3881d2",
                 fontSize: 11,
                 fontWeight: 600,
                 offset: 10
@@ -141,11 +141,11 @@ export default function CompletionRateChart({ data, title = "完了率ランキ�
       
       <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-orange-500 to-red-600"></div>
+          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-theme-500 to-theme-600"></div>
           <span>完了率</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-0.5 border-t-2 border-dashed border-orange-500"></div>
+          <div className="w-8 h-0.5 border-t-2 border-dashed border-theme-500"></div>
           <span>目標ライン (80%)</span>
         </div>
       </div>
