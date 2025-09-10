@@ -1,25 +1,38 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockVideos } from '../../lib/mockData';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaSearch } from 'react-icons/fa';
 
 export default function VideosPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [videos, setVideos] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = Array.from(new Set(mockVideos.map(video => video.category)));
-
-  const filteredVideos = useMemo(() => {
-    return mockVideos.filter(video => {
-      const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           video.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           video.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesCategory = !selectedCategory || video.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
+  useEffect(() => {
+    fetchVideos();
   }, [searchTerm, selectedCategory]);
+
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory) params.append('category', selectedCategory);
+      
+      const response = await fetch(`/api/videos?${params}`);
+      const data = await response.json();
+      
+      setVideos(data.videos || []);
+      setCategories(data.categories || []);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -50,7 +63,7 @@ export default function VideosPage() {
         </div>
         
         <div className="flex flex-wrap gap-2">
-          {Array.from(new Set(mockVideos.flatMap(video => video.tags))).map(tag => (
+          {videos.flatMap(video => video.tags || []).filter((tag, index, self) => self.indexOf(tag) === index).map(tag => (
             <button
               key={tag}
               onClick={() => setSearchTerm(tag)}
@@ -62,12 +75,18 @@ export default function VideosPage() {
         </div>
       </div>
 
-      <div className="mb-4 text-sm text-gray-600">
-        {filteredVideos.length}件の動画が見つかりました
-      </div>
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 text-sm text-gray-600">
+            {videos.length}件の動画が見つかりました
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredVideos.map((video) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {videos.map((video) => (
           <Link key={video._id} href={`/videos/${video._id}`}>
             <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-video bg-gray-200 flex items-center justify-center">
@@ -95,9 +114,11 @@ export default function VideosPage() {
                 </div>
               </div>
             </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+        </>
+      )}
     </div>
   );
 }

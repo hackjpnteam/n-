@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockInstructors } from '@/lib/mockData';
+import { connectDB } from '@/lib/db';
+import Instructor from '@/models/Instructor';
+import Video from '@/models/Video';
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
+    
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
     const sort = searchParams.get('sort') || 'createdAt';
@@ -11,37 +15,54 @@ export async function GET(request: NextRequest) {
     const tagsParam = searchParams.get('tags');
     const selectedTags = tagsParam ? tagsParam.split(',') : [];
 
-    let filteredInstructors = mockInstructors;
+    // Build query
+    let query: any = {};
     
     if (search) {
-      filteredInstructors = filteredInstructors.filter(instructor =>
-        instructor.name.toLowerCase().includes(search.toLowerCase()) ||
-        instructor.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
-      );
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: 'i' } },
+        { bio: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
     }
 
     if (selectedTags.length > 0) {
-      filteredInstructors = filteredInstructors.filter(instructor =>
-        selectedTags.every(tag => instructor.tags.includes(tag))
-      );
+      query.tags = { $all: selectedTags };
     }
 
-    if (sort === 'popular') {
-      filteredInstructors = [...filteredInstructors].sort((a, b) => 
-        Math.random() - 0.5
-      );
+    // Get total count
+    const total = await Instructor.countDocuments(query);
+
+    // Build sort object
+    let sortOption: any = {};
+    if (sort === 'createdAt') {
+      sortOption.createdAt = -1;
+    } else if (sort === 'name') {
+      sortOption.name = 1;
     }
 
-    const total = filteredInstructors.length;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedInstructors = filteredInstructors.slice(startIndex, endIndex);
+    // Fetch instructors with pagination
+    const instructors = await Instructor.find(query)
+      .sort(sortOption)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    const instructorsWithStats = paginatedInstructors.map(instructor => ({
-      ...instructor,
-      videoCount: Math.floor(Math.random() * 5) + 1,
-      totalViews: Math.floor(Math.random() * 10000) + 500
-    }));
+    // Get video stats for each instructor
+    const instructorsWithStats = await Promise.all(
+      instructors.map(async (instructor) => {
+        const videoCount = await Video.countDocuments({ instructor: instructor._id });
+        const videos = await Video.find({ instructor: instructor._id }).lean();
+        const totalViews = videos.reduce((sum, video) => sum + (video.stats?.views || 0), 0);
+        
+        return {
+          ...instructor,
+          videoCount,
+          totalViews
+        };
+      })
+    );
 
     return NextResponse.json({
       instructors: instructorsWithStats,

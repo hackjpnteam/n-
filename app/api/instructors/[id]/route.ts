@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockInstructors, mockVideos } from '@/lib/mockData';
+import { connectDB } from '@/lib/db';
+import Instructor from '@/models/Instructor';
+import Video from '@/models/Video';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const instructor = mockInstructors.find(i => i._id === params.id);
+    await connectDB();
+    
+    const instructor = await Instructor.findById(params.id).lean();
     
     if (!instructor) {
       return NextResponse.json(
@@ -15,7 +19,9 @@ export async function GET(
       );
     }
 
-    const videos = mockVideos.filter(v => v.instructor._id === params.id);
+    const videos = await Video.find({ instructor: params.id })
+      .populate('instructor')
+      .lean();
 
     const videoCount = videos.length;
     const totalViews = videos.reduce((sum, video) => sum + (video.stats?.views || 0), 0);
