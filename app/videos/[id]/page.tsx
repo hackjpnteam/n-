@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import CompleteButton from '@/components/videos/CompleteButton';
 import { FaBook, FaUser, FaClock, FaEye, FaCheckCircle, FaPlayCircle } from 'react-icons/fa';
@@ -9,6 +9,9 @@ import toast from 'react-hot-toast';
 
 export default function VideoPage() {
   const params = useParams();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [video, setVideo] = useState<any>(null);
   const [instructor, setInstructor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -37,17 +40,44 @@ export default function VideoPage() {
     return 'unknown';
   };
 
+  // Check authentication
   useEffect(() => {
-    if (params.id) {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+        
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          router.push('/auth/login');
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        router.push('/auth/login');
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (params.id && user) {
       fetchVideoDetails();
     }
-  }, [params.id]);
+  }, [params.id, user]);
 
   const fetchVideoDetails = async () => {
     setLoading(true);
     try {
-      // Fetch video details from API
-      const response = await fetch(`/api/videos/${params.id}`);
+      // Fetch video details from API with authentication
+      const response = await fetch(`/api/videos/${params.id}`, {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setVideo(data);
@@ -85,6 +115,21 @@ export default function VideoPage() {
       console.error('Error recording watch history:', error);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="mt-4 text-gray-600">認証確認中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
 
   if (loading) {
     return (

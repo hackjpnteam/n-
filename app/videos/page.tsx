@@ -1,19 +1,50 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaSearch } from 'react-icons/fa';
 
 export default function VideosPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [videos, setVideos] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Check authentication
   useEffect(() => {
-    fetchVideos();
-  }, [searchTerm, selectedCategory]);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+        
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          router.push('/auth/login');
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        router.push('/auth/login');
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchVideos();
+    }
+  }, [searchTerm, selectedCategory, user]);
 
   const fetchVideos = async () => {
     try {
@@ -22,7 +53,9 @@ export default function VideosPage() {
       if (searchTerm) params.append('search', searchTerm);
       if (selectedCategory) params.append('category', selectedCategory);
       
-      const response = await fetch(`/api/videos?${params}`);
+      const response = await fetch(`/api/videos?${params}`, {
+        credentials: 'include'
+      });
       const data = await response.json();
       
       setVideos(data.videos || []);
@@ -33,6 +66,21 @@ export default function VideosPage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="mt-4 text-gray-600">認証確認中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
