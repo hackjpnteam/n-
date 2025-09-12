@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromSession, getUserByEmail, createSession } from '@/lib/auth';
+import { connectDB } from '@/lib/db';
+import User from '@/models/User';
 
 export const dynamic = 'force-dynamic';
 
