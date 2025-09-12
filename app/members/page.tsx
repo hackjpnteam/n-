@@ -37,15 +37,21 @@ export default function MembersPage() {
       
       if (response.ok) {
         const data = await response.json();
-        setMembers(data.members);
-        setCurrentUserId(data.currentUserId);
+        setMembers(data.members || []);
+        setCurrentUserId(data.currentUserId || '');
+        console.log(`Loaded ${data.members?.length || 0} members`);
       } else if (response.status === 401) {
+        console.log('Authentication required, redirecting to login');
         router.push('/auth/login');
       } else {
-        console.error('Failed to fetch members');
+        console.error('Failed to fetch members:', response.status, response.statusText);
+        // Still set empty array to show empty state
+        setMembers([]);
       }
     } catch (error) {
       console.error('Error fetching members:', error);
+      // Set empty array to show empty state instead of loading forever
+      setMembers([]);
     } finally {
       setLoading(false);
     }
@@ -186,15 +192,21 @@ export default function MembersPage() {
         ))}
       </div>
 
-      {members.length === 0 && (
+      {members.length === 0 && !loading && (
         <div className="text-center py-12">
           <FaUsers className="text-6xl text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
             まだメンバーがいません
           </h3>
-          <p className="text-gray-500">
-            コミュニティが成長するのをお待ちください
+          <p className="text-gray-500 mb-4">
+            コミュニティメンバーを表示するには、プロフィールで会社名を設定してください
           </p>
+          <button
+            onClick={() => router.push('/mypage')}
+            className="bg-theme-600 text-white px-6 py-2 rounded-xl hover:bg-theme-700 transition-colors"
+          >
+            プロフィール設定
+          </button>
         </div>
       )}
     </div>
