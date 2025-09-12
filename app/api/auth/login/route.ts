@@ -47,9 +47,10 @@ export async function POST(request: NextRequest) {
     });
 
     // Set cookie
+    const isProduction = process.env.NODE_ENV === 'production';
     response.cookies.set('auth-token', token, {
       httpOnly: true,
-      secure: false, // Allow HTTP for localhost development
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/'

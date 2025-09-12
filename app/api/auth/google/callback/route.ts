@@ -17,6 +17,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login?error=no_code', request.url));
     }
 
+    // Check if we have required environment variables
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    
+    if (!clientId || !clientSecret) {
+      console.error('Missing Google OAuth configuration');
+      // For demo/development purposes, use demo user
+      const demoUser = {
+        email: 'demo.gmail@gmail.com',
+        name: 'Gmail デモユーザー',
+        picture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+      };
+      
+      return await processGoogleUser(demoUser, request);
+    }
+
     // Exchange code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -24,8 +40,8 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID || '1234567890-abcdefg.apps.googleusercontent.com',
-        client_secret: process.env.GOOGLE_CLIENT_SECRET || 'demo-secret',
+        client_id: clientId,
+        client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
         redirect_uri: new URL('/api/auth/google/callback', request.url).toString(),
@@ -63,7 +79,20 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('Google auth callback error:', error);
-    return NextResponse.redirect(new URL('/auth/login?error=callback_error', request.url));
+    
+    // Try to redirect safely
+    try {
+      return NextResponse.redirect(new URL('/auth/login?error=callback_error', request.url));
+    } catch (redirectError) {
+      console.error('Failed to redirect after error:', redirectError);
+      // Return a simple response if redirect fails
+      return new NextResponse('Authentication failed. Please try again.', {
+        status: 302,
+        headers: {
+          'Location': '/auth/login?error=callback_error'
+        }
+      });
+    }
   }
 }
 
@@ -91,9 +120,11 @@ async function processGoogleUser(googleUser: any, request: NextRequest) {
 
     // Redirect to home page with auth token
     const response = NextResponse.redirect(new URL('/', request.url));
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     response.cookies.set('auth-token', token, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/'
