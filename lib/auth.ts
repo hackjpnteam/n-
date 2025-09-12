@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { connectDB } from './db';
+import User from '@/models/User';
 
 // Simple password hashing (in production, use bcrypt)
 export function hashPassword(password: string): string {
@@ -111,7 +113,7 @@ globalForAuth.users = users;
 globalForAuth.sessions = sessions;
 
 export function createUser(email: string, name: string, password: string, role: 'user' | 'admin' = 'user'): User | null {
-  if (getUserByEmail(email)) {
+  if (getUserByEmailSync(email)) {
     return null; // User already exists
   }
 
@@ -129,7 +131,38 @@ export function createUser(email: string, name: string, password: string, role: 
   return user;
 }
 
-export function getUserByEmail(email: string): User | null {
+export async function getUserByEmail(email: string): Promise<User | null> {
+  // Try MongoDB first (production)
+  try {
+    await connectDB();
+    const mongoUser = await User.findOne({ email }).lean();
+    
+    if (mongoUser) {
+      return {
+        id: mongoUser._id.toString(),
+        email: mongoUser.email,
+        name: mongoUser.name,
+        passwordHash: mongoUser.passwordHash,
+        role: mongoUser.role,
+        createdAt: mongoUser.createdAt || new Date(),
+        profile: mongoUser.profile
+      };
+    }
+  } catch (error) {
+    console.log('📂 MongoDB getUserByEmail failed, falling back to file system');
+  }
+
+  // Fallback to file system (development)
+  for (const user of Array.from(users.values())) {
+    if (user.email === email) {
+      return user;
+    }
+  }
+  return null;
+}
+
+// Synchronous version for backward compatibility
+export function getUserByEmailSync(email: string): User | null {
   for (const user of Array.from(users.values())) {
     if (user.email === email) {
       return user;
@@ -149,14 +182,48 @@ export function createSession(userId: string): string {
   return token;
 }
 
-export function getUserFromSession(token: string): User | null {
+export async function getUserFromSession(token: string): Promise<User | null> {
   const userId = sessions.get(token);
   if (!userId) return null;
   
-  // Always get fresh data from memory, but verify it's up-to-date
+  // Try MongoDB first
+  try {
+    await connectDB();
+    const mongoUser = await User.findById(userId).lean();
+    
+    if (mongoUser) {
+      const user = {
+        id: mongoUser._id.toString(),
+        email: mongoUser.email,
+        name: mongoUser.name,
+        passwordHash: mongoUser.passwordHash,
+        role: mongoUser.role,
+        createdAt: mongoUser.createdAt || new Date(),
+        profile: mongoUser.profile
+      };
+      console.log('🔍 getUserFromSession - returning MongoDB user profile:', user.profile);
+      return user;
+    }
+  } catch (error) {
+    console.log('📂 MongoDB getUserFromSession failed, falling back to file system');
+  }
+  
+  // Fallback to file system
   const user = getUserById(userId);
   if (user) {
-    console.log('🔍 getUserFromSession - returning user profile:', user.profile);
+    console.log('🔍 getUserFromSession - returning file system user profile:', user.profile);
+  }
+  return user;
+}
+
+// Synchronous version for backward compatibility  
+export function getUserFromSessionSync(token: string): User | null {
+  const userId = sessions.get(token);
+  if (!userId) return null;
+  
+  const user = getUserById(userId);
+  if (user) {
+    console.log('🔍 getUserFromSessionSync - returning user profile:', user.profile);
   }
   return user;
 }

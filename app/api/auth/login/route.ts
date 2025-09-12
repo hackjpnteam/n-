@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(email);
     if (!user) {
       return NextResponse.json(
         { error: 'メールアドレスまたはパスワードが正しくありません' },

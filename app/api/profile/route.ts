@@ -20,7 +20,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get user from session
-    const user = getUserFromSession(authToken);
+    const user = await getUserFromSession(authToken);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid session' },

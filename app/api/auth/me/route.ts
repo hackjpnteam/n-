@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let user = getUserFromSession(token);
+    let user = await getUserFromSession(token);
     console.log('Debug - User from token:', user);
     
     // If session is lost, return null user instead of auto-recreating demo session

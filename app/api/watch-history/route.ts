@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = getUserFromSession(token.value);
+    const user = await getUserFromSession(token.value);
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = getUserFromSession(token.value);
+    const user = await getUserFromSession(token.value);
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },

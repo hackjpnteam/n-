@@ -5,18 +5,38 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    const error = searchParams.get('error');
+    // Get base URL from environment or headers
+    const getBaseUrl = () => {
+      // Try environment variable first (production)
+      if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
+      }
+      
+      // Try from request headers (fallback)
+      const host = request.headers.get('host');
+      const protocol = request.headers.get('x-forwarded-proto') || 'http';
+      
+      if (host) {
+        return `${protocol}://${host}`;
+      }
+      
+      // Final fallback
+      return 'http://localhost:3000';
+    };
+
+    const baseUrl = getBaseUrl();
+    const url = new URL(request.nextUrl);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    const error = url.searchParams.get('error');
     
     if (error) {
       console.error('Google OAuth error:', error);
-      return NextResponse.redirect(new URL('/auth/login?error=google_auth_error', request.url));
+      return NextResponse.redirect(`${baseUrl}/auth/login?error=google_auth_error`);
     }
 
     if (!code) {
-      return NextResponse.redirect(new URL('/auth/login?error=no_code', request.url));
+      return NextResponse.redirect(`${baseUrl}/auth/login?error=no_code`);
     }
 
     // Check if we have required environment variables
@@ -32,7 +52,7 @@ export async function GET(request: NextRequest) {
         picture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
       };
       
-      return await processGoogleUser(demoUser, request);
+      return await processGoogleUser(demoUser, baseUrl);
     }
 
     // Exchange code for access token
@@ -46,7 +66,7 @@ export async function GET(request: NextRequest) {
         client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: new URL('/api/auth/google/callback', request.url).toString(),
+        redirect_uri: `${baseUrl}/api/auth/google/callback`,
       }),
     });
 
@@ -59,7 +79,7 @@ export async function GET(request: NextRequest) {
         picture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
       };
       
-      return await processGoogleUser(demoUser, request);
+      return await processGoogleUser(demoUser, baseUrl);
     }
 
     const tokens = await tokenResponse.json();
@@ -77,14 +97,15 @@ export async function GET(request: NextRequest) {
 
     const googleUser = await userResponse.json();
     
-    return await processGoogleUser(googleUser, request);
+    return await processGoogleUser(googleUser, baseUrl);
     
   } catch (error) {
     console.error('Google auth callback error:', error);
     
     // Try to redirect safely
     try {
-      return NextResponse.redirect(new URL('/auth/login?error=callback_error', request.url));
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      return NextResponse.redirect(`${baseUrl}/auth/login?error=callback_error`);
     } catch (redirectError) {
       console.error('Failed to redirect after error:', redirectError);
       // Return a simple response if redirect fails
@@ -98,7 +119,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function processGoogleUser(googleUser: any, request: NextRequest) {
+async function processGoogleUser(googleUser: any, baseUrl: string) {
   try {
     // Check if user exists, if not create them
     let user = getUserByEmail(googleUser.email);
@@ -112,7 +133,7 @@ async function processGoogleUser(googleUser: any, request: NextRequest) {
     }
 
     if (!user) {
-      return NextResponse.redirect(new URL('/auth/login?error=user_creation_failed', request.url));
+      return NextResponse.redirect(`${baseUrl}/auth/login?error=user_creation_failed`);
     }
 
     // Create session
@@ -121,7 +142,7 @@ async function processGoogleUser(googleUser: any, request: NextRequest) {
     console.log('Google authentication successful for:', googleUser.email);
 
     // Redirect to home page with auth token
-    const response = NextResponse.redirect(new URL('/', request.url));
+    const response = NextResponse.redirect(`${baseUrl}/`);
     const isProduction = process.env.NODE_ENV === 'production';
     
     response.cookies.set('auth-token', token, {
@@ -135,6 +156,6 @@ async function processGoogleUser(googleUser: any, request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Error processing Google user:', error);
-    return NextResponse.redirect(new URL('/auth/login?error=processing_error', request.url));
+    return NextResponse.redirect(`${baseUrl}/auth/login?error=processing_error`);
   }
 }
