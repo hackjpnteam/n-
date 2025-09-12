@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 
 // API to get all members for community feature
+
+export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     // Check authentication

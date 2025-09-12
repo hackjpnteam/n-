@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/db';
 import Instructor from '@/models/Instructor';
 import Video from '@/models/Video';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/db';
 import Video from '@/models/Video';
 import { requireAuth } from '@/lib/authMiddleware';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

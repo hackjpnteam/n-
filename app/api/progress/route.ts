@@ -4,6 +4,8 @@ import { getUserFromSession } from '@/lib/auth';
 // Mock progress storage
 const progressData: Map<string, { userId: string; videoId: string; status: string; watchedAt: Date }> = new Map();
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;

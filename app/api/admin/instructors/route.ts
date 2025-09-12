@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/db';
 import Instructor from '@/models/Instructor';
 import { requireAdmin } from '@/lib/authMiddleware';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Check admin authorization
