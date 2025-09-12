@@ -9,8 +9,8 @@ export interface IVideo extends Document {
   title: string;
   description: string;
   durationSec: number;
-  thumbnailUrl: string;
-  sourceUrl: string;
+  thumbnailUrl?: string;
+  videoUrl: string;
   instructor: mongoose.Types.ObjectId;
   stats: IVideoStats;
   createdAt: Date;
@@ -35,10 +35,9 @@ const VideoSchema = new Schema<IVideo>({
   },
   thumbnailUrl: {
     type: String,
-    required: true,
     trim: true
   },
-  sourceUrl: {
+  videoUrl: {
     type: String,
     required: true,
     trim: true

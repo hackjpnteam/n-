@@ -25,7 +25,7 @@ async function seed() {
         name: '大平 啓介',
         title: '株式会社ブリーチ 代表取締役社長',
         bio: '成果報酬型広告代理店という難易度の高いモデルでIPOを実現。エクイティ調達ほぼ無しで2023年7月に上場、約70億円を調達。主幹事変更の経緯や成長戦略について講演。',
-        avatarUrl: '/instructors/ohira.jpg',
+        avatarUrl: '/default-avatar.png',
         tags: ['IPO', '広告代理店', '成果報酬型', '資本政策'],
         socials: {
           website: 'https://breach-inc.jp'
@@ -35,7 +35,7 @@ async function seed() {
         name: '稲葉 雄一',
         title: 'BBDイニシアティブ株式会社 代表取締役社長 グループCEO',
         bio: '電通テックで最先端領域を経験後、2006年創業。クラウドサービスの原型を開発し、事業会社中心の資本政策でIPOを実現。事業会社との提携や成長のきっかけを共有。',
-        avatarUrl: '/instructors/inaba.jpg',
+        avatarUrl: '/default-avatar.png',
         tags: ['IPO', 'クラウドサービス', '事業提携', '資本政策'],
         socials: {
           website: 'https://bbd-initiative.com'
@@ -45,7 +45,7 @@ async function seed() {
         name: '徳重 徹',
         title: 'Terra Drone株式会社 代表取締役社長',
         bio: '住友海上火災保険→米ThunderbirdでMBA取得→シリコンバレーで投資支援。2010年Terra Motors創業（インド三輪EV市場トップシェア）、2016年Terra Drone創業。2024年11月上場。世界市場を舞台に挑戦し続ける経営哲学を講演。',
-        avatarUrl: '/instructors/tokushige.jpg',
+        avatarUrl: '/default-avatar.png',
         tags: ['IPO', 'ドローン', 'グローバル', 'EV', 'MBA'],
         socials: {
           website: 'https://terra-drone.net'
@@ -55,10 +55,20 @@ async function seed() {
         name: '菊地 佳宏',
         title: '株式会社VRAIN Solution 取締役 コーポレート部部長',
         bio: '2020年3月創業からわずか4年弱で2024年2月にIPOを達成。大手銀行勤務を経て創業直後に参画。資本政策と早期IPOの成功要因を講演。',
-        avatarUrl: '/instructors/kikuchi.jpg',
+        avatarUrl: '/default-avatar.png',
         tags: ['IPO', '早期上場', '資本政策', 'コーポレート'],
         socials: {
           website: 'https://vrain-solution.com'
+        }
+      },
+      {
+        name: '伊藤 雅仁',
+        title: '経営戦略センター株式会社 代表取締役',
+        bio: '三菱銀行→ソフトバンクを経て2003年ファイナンス・オール代表取締役社長。ARUHI住宅ローン専門会社を創業。これまで10社以上のIPOに関与し、上場企業2社の代表取締役、5社の取締役を歴任。ベンチャー経営と起業家育成の専門家。',
+        avatarUrl: '/default-avatar.png',
+        tags: ['IPO', 'ベンチャー経営', '起業家育成', '住宅ローン', '金融'],
+        socials: {
+          website: 'https://keieisen.co.jp'
         }
       }
     ]);
@@ -71,8 +81,8 @@ async function seed() {
         title: '【2024年10月】成果報酬型広告代理店でのIPO実現 - 株式会社ブリーチ',
         description: '成果報酬型広告代理店という難易度の高いビジネスモデルでIPOを実現。エクイティ調達ほぼ無しで2023年7月に上場し、約70億円を調達した経緯と戦略を詳しく解説。主幹事証券会社の変更プロセスや今後の成長戦略についても深掘りします。',
         durationSec: 5400,
-        thumbnailUrl: '/video-thumbnail.png',
-        sourceUrl: '/videos/breach-ipo.mp4',
+        thumbnailUrl: '/default-thumbnail.png',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         instructor: instructors[0]._id,
         stats: { views: 2840, avgWatchRate: 94.2 }
       },
@@ -80,8 +90,8 @@ async function seed() {
         title: '【2024年11月】クラウドサービスの先駆者が語るIPO戦略 - BBDイニシアティブ株式会社',
         description: '電通テックでの最先端領域での経験を経て2006年に創業。クラウドサービスの原型を開発し、事業会社中心の資本政策でIPOを実現した経緯を解説。大手事業会社との戦略的提携の築き方、成長のターニングポイントとなった決断について共有します。',
         durationSec: 4800,
-        thumbnailUrl: '/video-thumbnail.png',
-        sourceUrl: '/videos/bbd-ipo.mp4',
+        thumbnailUrl: '/default-thumbnail.png',
+        videoUrl: 'https://vimeo.com/148751763',
         instructor: instructors[1]._id,
         stats: { views: 2150, avgWatchRate: 91.8 }
       },
@@ -89,8 +99,8 @@ async function seed() {
         title: '【2025年7月】グローバル市場への挑戦 - Terra Drone株式会社',
         description: '住友海上火災保険から米ThunderbirdでMBA取得、シリコンバレーでの投資支援を経て起業。2010年Terra Motors創業でインド三輪EV市場トップシェア獲得、2016年Terra Drone創業で2024年11月上場。世界市場を舞台に挑戦し続ける経営哲学と、グローバル展開の戦略を講演。',
         durationSec: 6300,
-        thumbnailUrl: '/video-thumbnail.png',
-        sourceUrl: '/videos/terradrone-ipo.mp4',
+        thumbnailUrl: '/default-thumbnail.png',
+        videoUrl: 'https://www.youtube.com/watch?v=9bZkp7q19f0',
         instructor: instructors[2]._id,
         stats: { views: 3520, avgWatchRate: 95.7 }
       },
@@ -98,8 +108,8 @@ async function seed() {
         title: '【2025年9月】創業4年弱での早期IPO成功事例 - 株式会社VRAIN Solution',
         description: '2020年3月創業からわずか4年弱で2024年2月にIPOを達成した成功事例を詳細に解説。大手銀行勤務の経験を活かし、創業直後から参画して構築した資本政策と、早期IPOを可能にした組織体制・ガバナンス構築の秘訣を共有。スタートアップのCFOに必要な視点も解説します。',
         durationSec: 5100,
-        thumbnailUrl: '/video-thumbnail.png',
-        sourceUrl: '/videos/vrain-ipo.mp4',
+        thumbnailUrl: '/default-thumbnail.png',
+        videoUrl: 'https://vimeo.com/76979871',
         instructor: instructors[3]._id,
         stats: { views: 1890, avgWatchRate: 93.5 }
       }

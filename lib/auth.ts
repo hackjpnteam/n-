@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 // Simple password hashing (in production, use bcrypt)
 export function hashPassword(password: string): string {
@@ -22,11 +24,91 @@ interface User {
   passwordHash: string;
   role: 'user' | 'admin';
   createdAt: Date;
+  profile?: {
+    company?: string;
+    position?: string;
+    companyUrl?: string;
+    bio?: string;
+    avatarUrl?: string;
+  };
 }
 
-// In-memory storage for demo
-const users: Map<string, User> = new Map();
-const sessions: Map<string, string> = new Map(); // token -> userId
+// File path for persistent storage
+const DATA_DIR = path.join(process.cwd(), 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Load data from files
+function loadUsers(): Map<string, User> {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+      const users = new Map<string, User>();
+      Object.entries(data).forEach(([id, user]: [string, any]) => {
+        users.set(id, {
+          ...user,
+          createdAt: new Date(user.createdAt)
+        });
+      });
+      return users;
+    }
+  } catch (error) {
+    console.error('Error loading users:', error);
+  }
+  return new Map<string, User>();
+}
+
+function loadSessions(): Map<string, string> {
+  try {
+    if (fs.existsSync(SESSIONS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8'));
+      return new Map<string, string>(Object.entries(data));
+    }
+  } catch (error) {
+    console.error('Error loading sessions:', error);
+  }
+  return new Map<string, string>();
+}
+
+// Save data to files
+function saveUsers(users: Map<string, User>) {
+  try {
+    const data = Object.fromEntries(users);
+    fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
+    console.log('✅ Users saved to file successfully', USERS_FILE);
+  } catch (error) {
+    console.error('Error saving users:', error);
+  }
+}
+
+function saveSessions(sessions: Map<string, string>) {
+  try {
+    const data = Object.fromEntries(sessions);
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error saving sessions:', error);
+  }
+}
+
+// In-memory storage for demo with file persistence
+// Using global to persist across hot reloads in development
+const globalForAuth = global as unknown as {
+  users: Map<string, User>;
+  sessions: Map<string, string>;
+};
+
+// Always reload from file to ensure data consistency
+const users = loadUsers();
+const sessions = loadSessions();
+
+// Update global references
+globalForAuth.users = users;
+globalForAuth.sessions = sessions;
 
 export function createUser(email: string, name: string, password: string, role: 'user' | 'admin' = 'user'): User | null {
   if (getUserByEmail(email)) {
@@ -43,6 +125,7 @@ export function createUser(email: string, name: string, password: string, role: 
   };
 
   users.set(user.id, user);
+  saveUsers(users);
   return user;
 }
 
@@ -62,17 +145,101 @@ export function getUserById(id: string): User | null {
 export function createSession(userId: string): string {
   const token = generateToken();
   sessions.set(token, userId);
+  saveSessions(sessions);
   return token;
 }
 
 export function getUserFromSession(token: string): User | null {
   const userId = sessions.get(token);
   if (!userId) return null;
-  return getUserById(userId);
+  
+  // Always get fresh data from memory, but verify it's up-to-date
+  const user = getUserById(userId);
+  if (user) {
+    console.log('🔍 getUserFromSession - returning user profile:', user.profile);
+  }
+  return user;
 }
 
 export function deleteSession(token: string): void {
   sessions.delete(token);
+  saveSessions(sessions);
+}
+
+export function updateUserProfile(userId: string, profileData: {
+  name?: string;
+  company?: string;
+  position?: string;
+  companyUrl?: string;
+  bio?: string;
+  avatarUrl?: string;
+}): User | null {
+  console.log('🔍 updateUserProfile called for userId:', userId);
+  console.log('🔍 Profile data to update:', profileData);
+  
+  const user = getUserById(userId);
+  if (!user) {
+    console.error('❌ User not found:', userId);
+    return null;
+  }
+
+  console.log('✅ User found:', user.email);
+  console.log('🔍 Current user profile:', user.profile);
+
+  // Update name if provided
+  if (profileData.name !== undefined) {
+    user.name = profileData.name;
+    console.log('📝 Updated name to:', user.name);
+  }
+
+  // Initialize profile if it doesn't exist
+  if (!user.profile) {
+    user.profile = {};
+    console.log('🆕 Created new profile object');
+  }
+
+  // Update profile fields
+  if (profileData.company !== undefined) {
+    user.profile.company = profileData.company;
+    console.log('📝 Updated company to:', user.profile.company);
+  }
+  if (profileData.position !== undefined) {
+    user.profile.position = profileData.position;
+    console.log('📝 Updated position to:', user.profile.position);
+  }
+  if (profileData.companyUrl !== undefined) {
+    user.profile.companyUrl = profileData.companyUrl;
+    console.log('📝 Updated companyUrl to:', user.profile.companyUrl);
+  }
+  if (profileData.bio !== undefined) {
+    user.profile.bio = profileData.bio;
+    console.log('📝 Updated bio to:', user.profile.bio);
+  }
+  if (profileData.avatarUrl !== undefined && profileData.avatarUrl !== '') {
+    user.profile.avatarUrl = profileData.avatarUrl;
+    console.log('📝 Updated avatarUrl to:', user.profile.avatarUrl);
+  } else if (profileData.avatarUrl === '') {
+    console.log('⚠️ Skipping empty avatarUrl to preserve existing value');
+  }
+
+  console.log('💾 Final user profile before saving:', user.profile);
+
+  // Update in storage
+  users.set(userId, user);
+  saveUsers(users);
+  
+  // Verify the data was saved correctly by re-reading from file
+  const verificationUsers = loadUsers();
+  const verifiedUser = verificationUsers.get(userId);
+  if (verifiedUser) {
+    console.log('🔍 Verification: Data saved successfully to file');
+    console.log('🔍 Verified profile from file:', verifiedUser.profile);
+  } else {
+    console.error('❌ Verification failed: User not found in saved file');
+  }
+  
+  console.log('✅ User profile updated successfully');
+  return user;
 }
 
 // Initialize with demo users

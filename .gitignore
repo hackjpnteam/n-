@@ -42,3 +42,9 @@ yarn-error.log*
 # Logs
 logs
 *.log
+
+# Local data storage
+data/
+
+# User uploads
+public/uploads/

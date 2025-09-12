@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaTimes, FaUpload } from 'react-icons/fa';
+import { FaTimes, FaUpload, FaImage } from 'react-icons/fa';
 import { mockInstructors } from '@/lib/mockData';
 
 interface AddVideoModalProps {
@@ -21,14 +21,74 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
     durationSec: 0,
     difficulty: 'beginner' as 'beginner' | 'intermediate' | 'advanced'
   });
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('画像ファイルを選択してください');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ファイルサイズは5MB以下にしてください');
+      return;
+    }
+
+    setThumbnailFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadThumbnail = async (): Promise<string> => {
+    if (!thumbnailFile) return formData.thumbnailUrl || '/default-thumbnail.png';
+
+    setUploadingThumbnail(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', thumbnailFile);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('アップロードに失敗しました');
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('サムネイルのアップロードに失敗しました');
+      return '/default-thumbnail.png';
+    } finally {
+      setUploadingThumbnail(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const instructor = mockInstructors.find(i => i._id === formData.instructorId);
     if (!instructor) return;
+
+    // Upload thumbnail if file is selected
+    const thumbnailUrl = await uploadThumbnail();
 
     const newVideo = {
       _id: Math.random().toString(36).substr(2, 9),
@@ -39,7 +99,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
         name: instructor.name,
         avatarUrl: instructor.avatarUrl
       },
-      thumbnailUrl: formData.thumbnailUrl || '/video-thumbnail.png',
+      thumbnailUrl: thumbnailUrl,
       videoUrl: formData.videoUrl,
       durationSec: formData.durationSec,
       difficulty: formData.difficulty,
@@ -62,6 +122,8 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
       durationSec: 0,
       difficulty: 'beginner'
     });
+    setThumbnailFile(null);
+    setThumbnailPreview('');
     onClose();
   };
 
@@ -150,7 +212,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                動画URL
+                動画URL（YouTube または Vimeo）
               </label>
               <input
                 type="url"
@@ -158,21 +220,76 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                 value={formData.videoUrl}
                 onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-                placeholder="https://example.com/video.mp4"
+                placeholder="https://www.youtube.com/watch?v=... または https://vimeo.com/..."
               />
+              <p className="text-xs text-gray-500 mt-1">
+                YouTubeまたはVimeoの動画URLを入力してください
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                サムネイルURL（オプション）
+                サムネイル画像
               </label>
-              <input
-                type="url"
-                value={formData.thumbnailUrl}
-                onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-                placeholder="https://example.com/thumbnail.jpg"
-              />
+              <div className="space-y-3">
+                {/* File upload */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThumbnailChange}
+                    className="hidden"
+                    id="thumbnail-upload"
+                  />
+                  <label
+                    htmlFor="thumbnail-upload"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-theme-500 transition-colors"
+                  >
+                    <FaImage className="text-gray-400" />
+                    <span className="text-gray-600">
+                      {thumbnailFile ? thumbnailFile.name : '画像を選択またはドラッグ＆ドロップ'}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Preview */}
+                {thumbnailPreview && (
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden bg-gray-100">
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setThumbnailFile(null);
+                        setThumbnailPreview('');
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+                )}
+
+                {/* URL input (optional) */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">または、画像URLを入力：</p>
+                  <input
+                    type="url"
+                    value={formData.thumbnailUrl}
+                    onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
+                    placeholder="https://example.com/thumbnail.jpg"
+                    disabled={!!thumbnailFile}
+                  />
+                </div>
+                
+                <p className="text-xs text-gray-500">
+                  ※ 画像を指定しない場合は、デフォルトのサムネイルが使用されます
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,10 +326,11 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
             <div className="flex items-center gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-theme-600 text-white py-3 rounded-xl hover:bg-theme-700 transition-all font-medium flex items-center justify-center gap-2"
+                disabled={uploadingThumbnail}
+                className="flex-1 bg-theme-600 text-white py-3 rounded-xl hover:bg-theme-700 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaUpload />
-                動画を追加
+                {uploadingThumbnail ? 'アップロード中...' : '動画を追加'}
               </button>
               <button
                 type="button"

@@ -16,6 +16,27 @@ export default function VideoPage() {
   const [hasQuiz, setHasQuiz] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // YouTube URLからvideo IDを取得する関数
+  const getYouTubeVideoId = (url: string): string | null => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Vimeo URLからvideo IDを取得する関数
+  const getVimeoVideoId = (url: string): string | null => {
+    const regExp = /(?:vimeo)\.com.*(?:videos|video|channels|)\/([\d]+)/i;
+    const match = url.match(regExp);
+    return match ? match[1] : null;
+  };
+
+  // 動画の種類を判定する関数
+  const getVideoType = (url: string): 'youtube' | 'vimeo' | 'unknown' => {
+    if (getYouTubeVideoId(url)) return 'youtube';
+    if (getVimeoVideoId(url)) return 'vimeo';
+    return 'unknown';
+  };
+
   useEffect(() => {
     if (params.id) {
       fetchVideoDetails();
@@ -39,7 +60,7 @@ export default function VideoPage() {
       }
       
       // Check if quiz exists
-      setHasQuiz(true); // Show quiz button for all videos
+      setHasQuiz(false); // Hide quiz button for all videos
     } catch (error) {
       console.error('Error fetching video details:', error);
     } finally {
@@ -93,32 +114,56 @@ export default function VideoPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="relative aspect-video bg-black rounded-2xl mb-6 overflow-hidden shadow-2xl">
-            <video
-              ref={videoRef}
-              controls
-              className="w-full h-full rounded-2xl"
-              src={video.sourceUrl}
-              onTimeUpdate={() => {
-                if (videoRef.current) {
-                  const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-                  setWatchedPercentage(Math.floor(percentage));
-                }
-              }}
-              onEnded={() => {
-                setWatchedPercentage(100);
-                toast.success('動画の視聴が完了しました！');
-              }}
-            >
-              お使いのブラウザは動画タグをサポートしていません。
-            </video>
-            
-            {/* Progress Bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
-                style={{ width: `${watchedPercentage}%` }}
-              />
-            </div>
+            {(() => {
+              const videoType = getVideoType(video.videoUrl);
+              
+              if (videoType === 'youtube') {
+                const videoId = getYouTubeVideoId(video.videoUrl);
+                return (
+                  <iframe
+                    className="w-full h-full rounded-2xl"
+                    src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1`}
+                    title={video.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    onLoad={() => {
+                      setTimeout(() => {
+                        setWatchedPercentage(100);
+                        toast.success('YouTube動画を表示しました！');
+                      }, 1000);
+                    }}
+                  />
+                );
+              } else if (videoType === 'vimeo') {
+                const videoId = getVimeoVideoId(video.videoUrl);
+                return (
+                  <iframe
+                    className="w-full h-full rounded-2xl"
+                    src={`https://player.vimeo.com/video/${videoId}?h=0`}
+                    title={video.title}
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    onLoad={() => {
+                      setTimeout(() => {
+                        setWatchedPercentage(100);
+                        toast.success('Vimeo動画を表示しました！');
+                      }, 1000);
+                    }}
+                  />
+                );
+              } else {
+                return (
+                  <div className="w-full h-full flex items-center justify-center text-white">
+                    <div className="text-center">
+                      <p className="text-lg mb-2">サポートされていない動画形式です</p>
+                      <p className="text-sm text-gray-300">YouTubeまたはVimeoのURLを入力してください</p>
+                    </div>
+                  </div>
+                );
+              }
+            })()}
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{video.title}</h1>
@@ -200,12 +245,6 @@ export default function VideoPage() {
                 <FaPlayCircle className="text-theme-500" />
                 動画を最後まで視聴
               </li>
-              {hasQuiz && (
-                <li className="flex items-center gap-2">
-                  <FaBook className="text-purple-500" />
-                  理解度テストで80%以上のスコアを獲得
-                </li>
-              )}
             </ul>
           </div>
         </div>
@@ -259,15 +298,6 @@ export default function VideoPage() {
                 <p className="font-medium text-gray-900">他の動画を見る</p>
                 <p className="text-sm text-gray-600">さらに学習を進めましょう</p>
               </Link>
-              {hasQuiz && watchedPercentage >= 80 && (
-                <Link
-                  href={`/videos/${video._id}/quiz`}
-                  className="block p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors"
-                >
-                  <p className="font-medium text-purple-900">理解度テストに挑戦</p>
-                  <p className="text-sm text-purple-600">知識を確認しましょう</p>
-                </Link>
-              )}
             </div>
           </div>
         </div>

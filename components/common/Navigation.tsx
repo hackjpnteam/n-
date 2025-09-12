@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaHome, FaUsers, FaPlay, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
+import { FaHome, FaUsers, FaPlay, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt, FaCog, FaUserFriends } from 'react-icons/fa';
 import { useAuth } from '@/lib/useAuth';
 import toast from 'react-hot-toast';
 
@@ -14,8 +14,14 @@ export default function Navigation() {
     { href: '/', label: 'ホーム', icon: FaHome },
     { href: '/instructors', label: 'ゲスト', icon: FaUsers },
     { href: '/videos', label: '動画', icon: FaPlay },
+    { href: '/members', label: '会員一覧', icon: FaUserFriends, authRequired: true },
     { href: '/admin/analytics', label: '分析', icon: FaChartBar },
-  ];
+  ] as Array<{
+    href: string;
+    label: string;
+    icon: any;
+    authRequired?: boolean;
+  }>;
 
   const handleLogout = async () => {
     try {
@@ -40,6 +46,9 @@ export default function Navigation() {
           
           <div className="flex items-center space-x-1">
             {navItems.map((item) => {
+              // Skip auth-required items if user is not logged in
+              if (item.authRequired && !user) return null;
+              
               const Icon = item.icon;
               const isActive = pathname === item.href;
               
@@ -65,14 +74,25 @@ export default function Navigation() {
               ) : user ? (
                 <div className="flex items-center gap-2">
                   <Link
-                    href={user.role === 'admin' ? '/admin/dashboard' : '/mypage'}
+                    href="/mypage"
                     className="flex items-center gap-2 px-3 py-2 bg-theme-50 hover:bg-theme-100 rounded-xl transition-all"
                   >
                     <FaUser className="text-theme-800" />
                     <span className="hidden sm:block text-sm font-medium text-theme-700">
-                      {user.role === 'admin' ? '管理ダッシュボード' : 'マイページ'}
+                      マイページ
                     </span>
                   </Link>
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all"
+                    >
+                      <FaCog className="text-orange-800" />
+                      <span className="hidden sm:block text-sm font-medium text-orange-700">
+                        管理
+                      </span>
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-theme-600 hover:bg-theme-50 rounded-xl transition-all"

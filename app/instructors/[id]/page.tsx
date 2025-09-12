@@ -78,7 +78,7 @@ export default function InstructorDetailPage() {
               >
                 <div className="relative aspect-video">
                   <Image
-                    src={video.thumbnailUrl || '/video-thumbnail.png'}
+                    src={video.thumbnailUrl || '/default-thumbnail.png'}
                     alt={video.title}
                     fill
                     className="object-cover"

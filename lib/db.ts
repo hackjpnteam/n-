@@ -22,6 +22,13 @@ if (!global.mongoose) {
 }
 
 export async function connectDB() {
+  // Force reconnection if cached connection is in a bad state
+  if (cached.conn && cached.conn.connection.readyState === 0) {
+    console.log('🔄 Detected disconnected MongoDB connection, clearing cache');
+    cached.conn = null;
+    cached.promise = null;
+  }
+  
   if (cached.conn) {
     return cached.conn;
   }
@@ -29,10 +36,23 @@ export async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000, 
+      socketTimeoutMS: 45000,
+      family: 4, // Use IPv4, skip trying IPv6
+      retryWrites: true,
+      w: 'majority'
     };
 
+    console.log('🔗 Connecting to MongoDB:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));
+
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      console.log('✅ MongoDB connected successfully');
       return mongoose;
+    }).catch((error) => {
+      console.error('❌ MongoDB connection error:', error);
+      cached.promise = null;
+      throw error;
     });
   }
 

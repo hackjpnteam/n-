@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromSession } from '@/lib/auth';
+import { getUserFromSession, getUserByEmail, createSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,11 +17,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = getUserFromSession(token);
+    let user = getUserFromSession(token);
     console.log('Debug - User from token:', user);
     
-    if (!user) {
-      // Clear invalid token and return empty response
+    // If session is lost, return null user instead of auto-recreating demo session
+    if (!user && token) {
+      // Clear invalid token
       const response = NextResponse.json(
         { user: null, message: 'Invalid or expired session' },
         { status: 200 }
