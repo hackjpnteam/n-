@@ -15,12 +15,12 @@ export default function Navigation() {
     { href: '/instructors', label: 'ゲスト', icon: FaUsers },
     { href: '/videos', label: '動画', icon: FaPlay },
     { href: '/members', label: '会員一覧', icon: FaUserFriends, authRequired: true },
-    { href: '/admin/analytics', label: '分析', icon: FaChartBar },
   ] as Array<{
     href: string;
     label: string;
     icon: any;
     authRequired?: boolean;
+    adminRequired?: boolean;
   }>;
 
   const handleLogout = async () => {
@@ -48,6 +48,8 @@ export default function Navigation() {
             {navItems.map((item) => {
               // Skip auth-required items if user is not logged in
               if (item.authRequired && !user) return null;
+              // Skip admin-required items if user is not admin
+              if (item.adminRequired && (!user || user.role !== 'admin')) return null;
               
               const Icon = item.icon;
               const isActive = pathname === item.href;
