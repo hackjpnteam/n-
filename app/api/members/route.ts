@@ -33,7 +33,11 @@ export async function GET(request: NextRequest) {
 
     try {
       // Try MongoDB first (production environment)
+      console.log('🔗 Attempting to connect to MongoDB...');
+      console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+      
       await connectDB();
+      
       const users = await User.find({
         'profile.company': { $exists: true, $ne: '', $regex: /.+/ }
       })
