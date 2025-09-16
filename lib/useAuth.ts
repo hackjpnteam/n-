@@ -34,10 +34,18 @@ export function useAuthLogic() {
   const refreshUser = async () => {
     try {
       const response = await fetch('/api/auth/me');
-      const data = await response.json();
+      
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.warn('Failed to parse JSON response in refreshUser:', jsonError);
+        setUser(null);
+        return;
+      }
       
       // Check if user data exists in response
-      if (data.user) {
+      if (data?.user) {
         setUser(data.user);
       } else {
         setUser(null);
@@ -59,13 +67,19 @@ export function useAuthLogic() {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'ログインに失敗しました');
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.warn('Failed to parse JSON response in login:', jsonError);
+      throw new Error('サーバーエラーが発生しました');
     }
 
-    setUser(data.user);
+    if (!response.ok) {
+      throw new Error(data?.error || 'ログインに失敗しました');
+    }
+
+    setUser(data?.user || null);
     // Refresh user data to ensure auth state is properly synced
     await refreshUser();
   };

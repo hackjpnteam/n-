@@ -79,19 +79,26 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.warn('Failed to parse JSON response:', jsonError);
+        data = { error: 'サーバーエラーが発生しました' };
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || '登録に失敗しました');
+        throw new Error(data?.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       toast.success('登録が完了しました！');
       router.push('/videos');
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error(error instanceof Error ? error.message : '登録に失敗しました');
+      const errorMessage = error instanceof Error ? error.message : '登録に失敗しました';
+      toast.error(errorMessage);
       setErrors({
-        submit: error instanceof Error ? error.message : '登録に失敗しました'
+        submit: errorMessage
       });
     } finally {
       setIsLoading(false);
