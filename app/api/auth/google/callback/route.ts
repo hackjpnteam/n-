@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createUser, createSession, getUserByEmail } from '@/lib/auth';
+import { createUserAsync, createSession, getUserByEmail } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -124,7 +124,7 @@ async function processGoogleUser(googleUser: any, baseUrl: string) {
     // Check if user exists, if not create them
     let user = await getUserByEmail(googleUser.email);
     if (!user) {
-      user = await createUser(
+      user = await createUserAsync(
         googleUser.email,
         googleUser.name || googleUser.given_name + ' ' + googleUser.family_name,
         'google-auth-' + Date.now(),

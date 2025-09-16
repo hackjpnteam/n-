@@ -131,6 +131,49 @@ export function createUser(email: string, name: string, password: string, role: 
   return user;
 }
 
+export async function createUserAsync(email: string, name: string, password: string, role: 'user' | 'admin' = 'user'): Promise<User | null> {
+  // Check if user already exists
+  const existingUser = await getUserByEmail(email);
+  if (existingUser) {
+    return null; // User already exists
+  }
+
+  const user: User = {
+    id: crypto.randomUUID(),
+    email,
+    name,
+    passwordHash: hashPassword(password),
+    role,
+    createdAt: new Date()
+  };
+
+  // Try MongoDB first (production)
+  try {
+    await connectDB();
+    const UserModel = (await import('@/models/User')).default;
+    const mongoUser = new UserModel(user);
+    await mongoUser.save();
+    console.log('✅ User saved to MongoDB');
+    
+    return {
+      id: (mongoUser as any)._id.toString(),
+      email: mongoUser.email,
+      name: mongoUser.name,
+      passwordHash: mongoUser.passwordHash,
+      role: mongoUser.role,
+      createdAt: mongoUser.createdAt || new Date(),
+      profile: mongoUser.profile
+    };
+  } catch (error) {
+    console.log('📂 MongoDB save failed, falling back to file system');
+  }
+
+  // Fallback to file system (development)
+  users.set(user.id, user);
+  saveUsers(users);
+  return user;
+}
+
 export async function getUserByEmail(email: string): Promise<User | null> {
   // Try MongoDB first (production)
   try {
