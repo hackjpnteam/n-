@@ -1,31 +1,17 @@
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import NextAuth, { NextAuthConfig } from "next-auth";
+import Google from "next-auth/providers/google";
 
-export const authConfig = {
+export const authConfig: NextAuthConfig = {
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  session: { strategy: "jwt" as const },
+  session: { strategy: "jwt" },
   trustHost: true,                 // AUTH_TRUST_HOST=true と併用
   secret: process.env.NEXTAUTH_SECRET,
-  // 必要なら callbacks でユーザー作成/DB同期など
-  callbacks: {
-    async jwt({ token, account, profile }: any) {
-      // ここで必要なクレームを詰める
-      return token;
-    },
-    async session({ session, token }: any) {
-      // session.user.id = token.sub など
-      return session;
-    },
-  },
-  pages: {
-    // カスタムログインページがある場合:
-    // signIn: "/auth/login",
-  },
+  debug: true,                     // 一時的に有効化（原因を可視化）
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);

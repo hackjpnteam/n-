@@ -1,12 +1,10 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
-import { auth } from "@/auth"; // NextAuth v5 推奨。無い場合はセッション取得ロジックに置換
-
+import { auth } from "@/auth";
 export async function GET() {
   try {
-    const session = await auth(); // 未ログインでも例外にせず判定だけ
+    const session = await auth();
     if (!session) {
       return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 });
     }
