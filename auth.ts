@@ -9,10 +9,23 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   session: { strategy: "jwt" },
-  trustHost: true,                         // AUTH_TRUST_HOST=true と併用
+  trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
-  // 本番デバッグは必要なときだけ true
-  // debug: process.env.NODE_ENV !== "production",
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
+  callbacks: {
+    async jwt({ token, account, user }) {
+      if (account && user) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      return session;
+    },
+  },
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
