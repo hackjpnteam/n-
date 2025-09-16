@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaSave, FaArrowLeft, FaImage, FaTimes } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -13,6 +14,7 @@ interface Instructor {
 
 export default function EditVideoPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
@@ -33,25 +35,28 @@ export default function EditVideoPage({ params }: { params: { id: string } }) {
   });
 
   useEffect(() => {
-    checkAuth();
-    fetchInstructors();
-    fetchVideo();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-      
-      if (!data.user || data.user.role !== 'admin') {
-        toast.error('管理者権限が必要です');
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Auth check error:', error);
-      router.push('/');
+    if (status === 'loading') {
+      setLoading(true);
+      return;
     }
-  };
+
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+      return;
+    }
+
+    if (session?.user && session.user.role !== 'admin') {
+      toast.error('管理者権限が必要です');
+      router.push('/');
+      return;
+    }
+
+    if (session?.user) {
+      fetchInstructors();
+      fetchVideo();
+    }
+  }, [session, status, router]);
+
 
   const fetchInstructors = async () => {
     try {

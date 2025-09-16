@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaEdit, FaTrash, FaPlus, FaUser } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -20,32 +21,36 @@ interface Instructor {
 
 export default function AdminInstructorsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-    fetchInstructors();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-      
-      if (!data.user || data.user.role !== 'admin') {
-        toast.error('管理者権限が必要です');
-        router.push('/');
-        return;
-      }
-      
-      setUser(data.user);
-    } catch (error) {
-      console.error('Auth check error:', error);
-      router.push('/');
+    if (status === 'loading') {
+      setLoading(true);
+      return;
     }
-  };
+
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+      return;
+    }
+
+    if (session?.user && session.user.role !== 'admin') {
+      toast.error('管理者権限が必要です');
+      router.push('/');
+      return;
+    }
+
+    if (session?.user) {
+      setUser(session.user);
+      setLoading(false);
+      fetchInstructors();
+    }
+  }, [session, status, router]);
+
 
   const fetchInstructors = async () => {
     try {
@@ -57,7 +62,7 @@ export default function AdminInstructorsPage() {
       console.error('Error fetching instructors:', error);
       toast.error('講師データの取得に失敗しました');
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -84,7 +89,7 @@ export default function AdminInstructorsPage() {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">

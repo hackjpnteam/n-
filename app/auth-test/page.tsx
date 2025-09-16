@@ -2,17 +2,33 @@
 
 import { useAuth } from '@/lib/useAuth';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
 export default function AuthTestPage() {
   const { user, loading, login, logout } = useAuth();
+  const { data: session, status } = useSession();
   const [testResult, setTestResult] = useState<string>('');
 
   const testAuth = async () => {
     try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-      setTestResult(`Status: ${response.status}, Data: ${JSON.stringify(data, null, 2)}`);
+      // Test NextAuth session instead of old API
+      if (status === 'loading') {
+        setTestResult('Status: Loading session...');
+        return;
+      }
+      
+      if (status === 'unauthenticated') {
+        setTestResult('Status: 401, Data: { "error": "Not authenticated" }');
+        return;
+      }
+      
+      if (session?.user) {
+        setTestResult(`Status: 200, Data: ${JSON.stringify({ user: session.user }, null, 2)}`);
+        return;
+      }
+      
+      setTestResult('Status: Unknown, Data: { "error": "Unexpected session state" }');
     } catch (error) {
       setTestResult(`Error: ${error}`);
     }
@@ -53,7 +69,7 @@ export default function AuthTestPage() {
           <h2 className="text-xl font-semibold mb-4">テスト機能</h2>
           <div className="flex gap-4 mb-4">
             <button onClick={testAuth} className="btn-primary">
-              /api/auth/me をテスト
+              NextAuth Session をテスト
             </button>
             <button onClick={testLogin} className="btn-success">
               デモログイン

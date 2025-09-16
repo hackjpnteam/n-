@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaSearch } from 'react-icons/fa';
 
 export default function VideosPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,28 +19,21 @@ export default function VideosPage() {
 
   // Check authentication
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/me');
-        const data = await response.json();
-        
-        if (data.user) {
-          setUser(data.user);
-        } else {
-          router.push('/auth/login');
-          return;
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        router.push('/auth/login');
-        return;
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-    
-    checkAuth();
-  }, [router]);
+    if (status === 'loading') {
+      setAuthLoading(true);
+      return;
+    }
+
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+      return;
+    }
+
+    if (session?.user) {
+      setUser(session.user);
+      setAuthLoading(false);
+    }
+  }, [session, status, router]);
 
   useEffect(() => {
     if (user) {

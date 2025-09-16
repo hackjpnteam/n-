@@ -1,44 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaUsers, FaVideo, FaChartBar, FaCog } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { useAuthCheck } from '@/lib/useAuthCheck';
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
-      
-      if (!data.user) {
-        router.push('/auth/login');
-        return;
-      }
-      
-      if (data.user.role !== 'admin') {
-        toast.error('管理者権限が必要です');
-        router.push('/');
-        return;
-      }
-      
-      setUser(data.user);
-    } catch (error) {
-      console.error('Auth check error:', error);
-      router.push('/auth/login');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { user, loading } = useAuthCheck(true);
 
   if (loading) {
     return (

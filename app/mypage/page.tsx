@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaPlay, FaHistory, FaCog, FaEdit, FaSave, FaBuilding, FaBriefcase, FaGlobe, FaCamera, FaBookmark } from 'react-icons/fa';
@@ -12,6 +13,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function MyPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [watchedVideos, setWatchedVideos] = useState<any[]>([]);
@@ -29,37 +31,32 @@ export default function MyPage() {
   });
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Check authentication
+  // Check authentication using NextAuth session
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/me');
-        const data = await response.json();
-        
-        if (data.user) {
-          setUser(data.user);
-          // Initialize profile data
-          setProfileData({
-            name: data.user.name || '',
-            company: data.user.profile?.company || '',
-            position: data.user.profile?.position || '',
-            companyUrl: data.user.profile?.companyUrl || '',
-            bio: data.user.profile?.bio || '',
-            avatarUrl: data.user.profile?.avatarUrl || ''
-          });
-        } else {
-          router.push('/auth/login');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        router.push('/auth/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkAuth();
-  }, [router]);
+    if (status === 'loading') {
+      setLoading(true);
+      return;
+    }
+
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+      return;
+    }
+
+    if (session?.user) {
+      setUser(session.user);
+      // Initialize profile data from NextAuth session
+      setProfileData({
+        name: session.user.name || '',
+        company: '',
+        position: '',
+        companyUrl: '',
+        bio: '',
+        avatarUrl: session.user.image || ''
+      });
+      setLoading(false);
+    }
+  }, [session, status, router]);
 
   // Fetch watch history and saved videos from API
   useEffect(() => {
