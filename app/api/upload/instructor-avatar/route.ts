@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current user from session
-    const currentUser = getUserFromSession(authToken);
+    const currentUser = await getUserFromSession(authToken);
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json(
         { error: 'Admin access required' },

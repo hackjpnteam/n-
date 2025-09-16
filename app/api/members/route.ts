@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let members = [];
+    let members: any[] = [];
 
     try {
       // Try MongoDB first (production environment)

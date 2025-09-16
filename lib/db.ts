@@ -41,7 +41,7 @@ export async function connectDB() {
       socketTimeoutMS: 45000,
       family: 4, // Use IPv4, skip trying IPv6
       retryWrites: true,
-      w: 'majority'
+      w: 'majority' as const
     };
 
     console.log('🔗 Connecting to MongoDB:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));

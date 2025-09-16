@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const currentUser = getUserFromSession(authToken);
+    const currentUser = await getUserFromSession(authToken);
     if (!currentUser) {
       return NextResponse.json(
         { error: 'Invalid session' },
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentUser = getUserFromSession(authToken);
+    const currentUser = await getUserFromSession(authToken);
     if (!currentUser) {
       return NextResponse.json(
         { error: 'Invalid session' },
@@ -153,7 +153,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const currentUser = getUserFromSession(authToken);
+    const currentUser = await getUserFromSession(authToken);
     if (!currentUser) {
       return NextResponse.json(
         { error: 'Invalid session' },

@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Get unique categories
     const allVideos = await Video.find({}).select('category').lean();
-    const categories = [...new Set(allVideos.map(v => v.category).filter(Boolean))];
+    const categories = Array.from(new Set(allVideos.map((v: any) => v.category).filter(Boolean)));
 
     return NextResponse.json({
       videos,

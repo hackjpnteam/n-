@@ -122,9 +122,9 @@ export async function GET(request: NextRequest) {
 async function processGoogleUser(googleUser: any, baseUrl: string) {
   try {
     // Check if user exists, if not create them
-    let user = getUserByEmail(googleUser.email);
+    let user = await getUserByEmail(googleUser.email);
     if (!user) {
-      user = createUser(
+      user = await createUser(
         googleUser.email,
         googleUser.name || googleUser.given_name + ' ' + googleUser.family_name,
         'google-auth-' + Date.now(),

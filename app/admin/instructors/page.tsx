@@ -170,7 +170,7 @@ export default function AdminInstructorsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1 flex-wrap">
-                      {(instructor.expertise || instructor.tags || []).slice(0, 2).map((exp, index) => (
+                      {(instructor.expertise || []).slice(0, 2).map((exp, index) => (
                         <span
                           key={index}
                           className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
@@ -178,9 +178,9 @@ export default function AdminInstructorsPage() {
                           {exp}
                         </span>
                       ))}
-                      {(instructor.expertise || instructor.tags || []).length > 2 && (
+                      {(instructor.expertise || []).length > 2 && (
                         <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                          +{(instructor.expertise || instructor.tags || []).length - 2}
+                          +{(instructor.expertise || []).length - 2}
                         </span>
                       )}
                     </div>

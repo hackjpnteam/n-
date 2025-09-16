@@ -29,7 +29,7 @@ export async function requireAdmin(request: NextRequest) {
     return user; // Return the error response
   }
   
-  if (user.role !== 'admin') {
+  if (user!.role !== 'admin') {
     return NextResponse.json(
       { error: 'Admin access required' },
       { status: 403 }

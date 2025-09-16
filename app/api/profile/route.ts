@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({
         message: 'Profile updated successfully',
         user: {
-          id: updatedUser._id.toString(),
+          id: (updatedUser as any)._id.toString(),
           name: updatedUser.name,
           email: updatedUser.email,
           role: updatedUser.role,

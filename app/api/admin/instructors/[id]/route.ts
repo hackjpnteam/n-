@@ -21,7 +21,7 @@ export async function GET(
     }
     
     // Map avatarUrl to avatar for UI consistency
-    const instructorData = instructor.toObject();
+    const instructorData: any = instructor.toObject();
     instructorData.avatar = instructorData.avatarUrl;
     
     return NextResponse.json(instructorData);
@@ -76,7 +76,7 @@ export async function PUT(
     console.log('✅ Instructor updated successfully:', {
       id: instructor._id,
       name: instructor.name,
-      avatar: instructor.avatar
+      avatarUrl: instructor.avatarUrl
     });
 
     return NextResponse.json({
