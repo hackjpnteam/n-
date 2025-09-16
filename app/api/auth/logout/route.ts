@@ -32,3 +32,48 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Handle other HTTP methods explicitly
+export async function GET() {
+  console.log('❌ GET method not allowed for logout');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST for logout.' },
+    { status: 405, headers: { 'Allow': 'POST, OPTIONS' } }
+  );
+}
+
+export async function PUT() {
+  console.log('❌ PUT method not allowed for logout');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST for logout.' },
+    { status: 405, headers: { 'Allow': 'POST, OPTIONS' } }
+  );
+}
+
+export async function PATCH() {
+  console.log('❌ PATCH method not allowed for logout');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST for logout.' },
+    { status: 405, headers: { 'Allow': 'POST, OPTIONS' } }
+  );
+}
+
+export async function DELETE() {
+  console.log('❌ DELETE method not allowed for logout');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST for logout.' },
+    { status: 405, headers: { 'Allow': 'POST, OPTIONS' } }
+  );
+}
+
+export async function OPTIONS() {
+  console.log('✅ OPTIONS preflight request for logout');
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Allow': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}

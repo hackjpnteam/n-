@@ -54,3 +54,48 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Handle other HTTP methods explicitly
+export async function POST() {
+  console.log('❌ POST method not allowed for /me');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use GET for user info.' },
+    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
+  );
+}
+
+export async function PUT() {
+  console.log('❌ PUT method not allowed for /me');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use GET for user info.' },
+    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
+  );
+}
+
+export async function PATCH() {
+  console.log('❌ PATCH method not allowed for /me');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use GET for user info.' },
+    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
+  );
+}
+
+export async function DELETE() {
+  console.log('❌ DELETE method not allowed for /me');
+  return NextResponse.json(
+    { error: 'Method not allowed. Use GET for user info.' },
+    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
+  );
+}
+
+export async function OPTIONS() {
+  console.log('✅ OPTIONS preflight request for /me');
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Allow': 'GET, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
