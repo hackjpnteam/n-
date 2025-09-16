@@ -73,3 +73,5 @@ npm run dev
 
 ### 管理機能
 - `GET /api/admin/analytics` - 分析データ
+
+<!-- Force Vercel deployment: 2025-09-16-13:55 -->
