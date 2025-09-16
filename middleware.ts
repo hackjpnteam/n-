@@ -1,20 +1,14 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-
-export function middleware(request: NextRequest) {
-  // Simple middleware without NextAuth for now
-  return NextResponse.next()
-}
-
+import { auth } from "./auth";
+ 
+export default auth((req) => {
+  // req.auth contains the user session
+});
+ 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    "/mypage",
+    "/admin/:path*",
+    // APIや静的は必ず除外
+    "/((?!api|_next/static|_next/image|favicon.ico).*)"
   ],
-}
+};
