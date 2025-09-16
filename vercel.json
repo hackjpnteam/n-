@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "app/api/members/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/admin/members/route.ts": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "MONGODB_URI": "@mongodb_uri"
+  }
+}

@@ -1,5 +1,7 @@
 'use client';
 
+// Force Vercel rebuild - Members page for community feature
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUser, FaBuilding, FaBriefcase, FaGlobe, FaEnvelope, FaCrown, FaUsers, FaStar } from 'react-icons/fa';
