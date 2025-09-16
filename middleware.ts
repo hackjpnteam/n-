@@ -5,10 +5,6 @@ export default auth((req) => {
 });
  
 export const config = {
-  matcher: [
-    "/mypage",
-    "/admin/:path*",
-    // APIや静的は必ず除外
-    "/((?!api|_next/static|_next/image|favicon.ico).*)"
-  ],
+  // Protect pages, but EXCLUDE API & static so API never returns HTML
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

@@ -1,101 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromSession, getUserByEmail, createSession } from '@/lib/auth';
-import { connectDB } from '@/lib/db';
-import User from '@/models/User';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export const dynamic = 'force-dynamic';
+import { NextResponse } from "next/server";
+import { auth } from "@/auth"; // NextAuth v5 推奨。無い場合はセッション取得ロジックに置換
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const token = request.cookies.get('auth-token')?.value;
-    
-    // Debug logging
-    console.log('Debug - Cookies:', request.cookies.getAll());
-    console.log('Debug - Token:', token);
-    
-    if (!token) {
-      // Return empty response without error to avoid console errors
-      return NextResponse.json(
-        { user: null, message: 'No authentication token' },
-        { status: 200 }
-      );
+    const session = await auth(); // 未ログインでも例外にせず判定だけ
+    if (!session) {
+      return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 });
     }
-
-    let user = await getUserFromSession(token);
-    console.log('Debug - User from token:', user);
-    
-    // If session is lost or user not found, return null user
-    if (!user) {
-      const response = NextResponse.json(
-        { user: null, message: 'Invalid or expired session' },
-        { status: 200 }
-      );
-      // Clear invalid token if it exists
-      if (token) {
-        response.cookies.set('auth-token', '', { maxAge: 0, path: '/' });
-      }
-      return response;
-    }
-
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        profile: user.profile || {}
-      }
-    });
-  } catch (error) {
-    console.error('Auth check error:', error);
-    return NextResponse.json(
-      { user: null, error: '認証確認中にエラーが発生しました' },
-      { status: 200 }
-    );
+    return NextResponse.json({ ok: true, user: session.user }, { status: 200 });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message ?? "INTERNAL_ERROR" }, { status: 500 });
   }
-}
-
-// Handle other HTTP methods explicitly
-export async function POST() {
-  console.log('❌ POST method not allowed for /me');
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for user info.' },
-    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
-  );
-}
-
-export async function PUT() {
-  console.log('❌ PUT method not allowed for /me');
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for user info.' },
-    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
-  );
-}
-
-export async function PATCH() {
-  console.log('❌ PATCH method not allowed for /me');
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for user info.' },
-    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
-  );
-}
-
-export async function DELETE() {
-  console.log('❌ DELETE method not allowed for /me');
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for user info.' },
-    { status: 405, headers: { 'Allow': 'GET, OPTIONS' } }
-  );
-}
-
-export async function OPTIONS() {
-  console.log('✅ OPTIONS preflight request for /me');
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Allow': 'GET, OPTIONS',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
 }

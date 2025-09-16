@@ -33,19 +33,11 @@ export function useAuthLogic() {
 
   const refreshUser = async () => {
     try {
-      const response = await fetch('/api/auth/me');
-      
-      let data = null;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.warn('Failed to parse JSON response in refreshUser:', jsonError);
-        setUser(null);
-        return;
-      }
+      const { fetchJSON } = await import('@/lib/fetchJSON');
+      const data = await fetchJSON('/api/auth/me');
       
       // Check if user data exists in response
-      if (data?.user) {
+      if (data?.ok && data?.user) {
         setUser(data.user);
       } else {
         setUser(null);
@@ -59,34 +51,28 @@ export function useAuthLogic() {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    let data = null;
     try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.warn('Failed to parse JSON response in login:', jsonError);
-      throw new Error('サーバーエラーが発生しました');
-    }
+      const { fetchJSON } = await import('@/lib/fetchJSON');
+      const data = await fetchJSON('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      throw new Error(data?.error || 'ログインに失敗しました');
+      setUser(data?.user || null);
+      // Refresh user data to ensure auth state is properly synced
+      await refreshUser();
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'ログインに失敗しました');
     }
-
-    setUser(data?.user || null);
-    // Refresh user data to ensure auth state is properly synced
-    await refreshUser();
   };
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const { fetchJSON } = await import('@/lib/fetchJSON');
+      await fetchJSON('/api/auth/logout', { method: 'POST' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
