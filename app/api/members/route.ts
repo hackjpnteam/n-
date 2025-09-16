@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
           position: user.profile?.position || '',
           companyUrl: user.profile?.companyUrl || '',
           bio: user.profile?.bio || '',
-          avatarUrl: user.profile?.avatarUrl || ''
+          avatarUrl: user.profile?.avatarUrl || null
         }
       }));
       
@@ -71,20 +71,26 @@ export async function GET(request: NextRequest) {
           // Only include members with company name filled
           members = Object.values(usersData)
             .filter((user: any) => user.profile?.company && user.profile.company.trim() !== '')
-            .map((user: any) => ({
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              createdAt: user.createdAt,
-              profile: {
-                company: user.profile?.company || '',
-                position: user.profile?.position || '',
-                companyUrl: user.profile?.companyUrl || '',
-                bio: user.profile?.bio || '',
-                avatarUrl: user.profile?.avatarUrl || ''
-              }
-            }));
+            .map((user: any) => {
+              console.log(`Processing user ${user.name}:`, {
+                hasProfile: !!user.profile,
+                avatarUrl: user.profile?.avatarUrl
+              });
+              return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                createdAt: user.createdAt,
+                profile: {
+                  company: user.profile?.company || '',
+                  position: user.profile?.position || '',
+                  companyUrl: user.profile?.companyUrl || '',
+                  bio: user.profile?.bio || '',
+                  avatarUrl: user.profile?.avatarUrl || null
+                }
+              };
+            });
           
           console.log(`✅ Loaded ${members.length} members from file system`);
         } else {

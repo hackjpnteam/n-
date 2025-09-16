@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaPlay, FaHistory, FaCog, FaEdit, FaSave, FaBuilding, FaBriefcase, FaGlobe, FaCamera } from 'react-icons/fa';
+import Image from 'next/image';
+import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaPlay, FaHistory, FaCog, FaEdit, FaSave, FaBuilding, FaBriefcase, FaGlobe, FaCamera, FaBookmark } from 'react-icons/fa';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 
@@ -15,7 +16,9 @@ export default function MyPage() {
   const [loading, setLoading] = useState(true);
   const [watchedVideos, setWatchedVideos] = useState<any[]>([]);
   const [recentVideos, setRecentVideos] = useState<any[]>([]);
+  const [savedVideos, setSavedVideos] = useState<any[]>([]);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [activeTab, setActiveTab] = useState<'recent' | 'saved' | 'completed'>('recent');
   const [profileData, setProfileData] = useState({
     name: '',
     company: '',
@@ -58,10 +61,11 @@ export default function MyPage() {
     checkAuth();
   }, [router]);
 
-  // Fetch watch history from API
+  // Fetch watch history and saved videos from API
   useEffect(() => {
     if (user) {
       fetchWatchHistory();
+      fetchSavedVideos();
     }
   }, [user]);
 
@@ -76,6 +80,85 @@ export default function MyPage() {
       }
     } catch (error) {
       console.error('Error fetching watch history:', error);
+    }
+  };
+
+  const fetchSavedVideos = async () => {
+    try {
+      const response = await fetch('/api/saved-videos', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSavedVideos(data.savedVideos || []);
+      } else {
+        console.error('Failed to fetch saved videos');
+      }
+    } catch (error) {
+      console.error('Error fetching saved videos:', error);
+      // Fallback to localStorage for backward compatibility
+      const savedData = localStorage.getItem('savedVideos');
+      if (savedData) {
+        setSavedVideos(JSON.parse(savedData));
+      }
+    }
+  };
+
+  // Add test saved video for demonstration
+  const addTestSavedVideo = async () => {
+    const testVideo = {
+      id: '1',
+      title: 'Python機械学習入門',
+      instructor: 'テスト講師',
+      thumbnailUrl: '/default-video-thumbnail.png'
+    };
+
+    await saveVideo('1', testVideo);
+  };
+
+  const saveVideo = async (videoId: string, videoData: any) => {
+    try {
+      const response = await fetch('/api/saved-videos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ videoId, videoData })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSavedVideos(data.savedVideos);
+        toast.success('動画を保存しました！');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || '保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving video:', error);
+      toast.error('保存中にエラーが発生しました');
+    }
+  };
+
+  const removeSavedVideo = async (videoId: string) => {
+    try {
+      const response = await fetch(`/api/saved-videos?videoId=${videoId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSavedVideos(data.savedVideos);
+        toast.success('保存を解除しました');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || '削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error removing saved video:', error);
+      toast.error('削除中にエラーが発生しました');
     }
   };
 
@@ -105,35 +188,25 @@ export default function MyPage() {
         body: JSON.stringify(profileData)
       });
 
-      console.log('API response status:', response.status);
-      console.log('API response ok:', response.ok);
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
 
       if (response.ok) {
         const data = await response.json();
         console.log('Profile saved successfully:', data);
         setUser(data.user);
-        // Update profileData state to reflect the saved values
-        setProfileData({
-          name: data.user.name || '',
-          company: data.user.profile?.company || '',
-          position: data.user.profile?.position || '',
-          companyUrl: data.user.profile?.companyUrl || '',
-          bio: data.user.profile?.bio || '',
-          avatarUrl: data.user.profile?.avatarUrl || ''
-        });
-        setEditingProfile(false);
         toast.success('プロフィールを保存しました！');
+        setEditingProfile(false);
       } else {
-        const errorData = await response.text();
-        console.error('Failed to save profile:', response.status, errorData);
-        toast.error('プロフィールの保存に失敗しました');
+        const errorData = await response.json();
+        console.error('Save failed:', errorData);
+        toast.error(errorData.error || 'プロフィールの保存に失敗しました');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
       toast.error('プロフィールの保存中にエラーが発生しました');
     } finally {
       setSavingProfile(false);
-      console.log('Profile save process completed');
     }
   };
 
@@ -267,17 +340,29 @@ export default function MyPage() {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              {user.profile?.avatarUrl ? (
-                <img
-                  src={user.profile.avatarUrl}
-                  alt="プロフィール画像"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  {user.name.charAt(0)}
-                </div>
-              )}
+              <div className="relative w-12 h-12">
+                {user.profile?.avatarUrl ? (
+                  <Image
+                    src={user.profile.avatarUrl}
+                    alt="プロフィール画像"
+                    fill
+                    className="rounded-full object-cover border-2 border-blue-300"
+                    sizes="48px"
+                    onError={(e) => {
+                      console.error('Failed to load avatar:', user.profile.avatarUrl);
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.parentElement?.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+              </div>
+              <div 
+                className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                style={{ display: user.profile?.avatarUrl ? 'none' : 'flex' }}
+              >
+                {user.name.charAt(0)}
+              </div>
             </div>
             <button
               onClick={() => setEditingProfile(true)}
@@ -316,65 +401,228 @@ export default function MyPage() {
         </div>
       </div>
 
-      {/* 直近の視聴履歴セクション */}
+      {/* 学習コンテンツタブセクション */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <FaHistory className="text-orange-600 text-xl" />
-          <h2 className="text-xl font-bold text-gray-900">直近の視聴研修</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <FaHistory className="text-orange-600 text-xl" />
+            <h2 className="text-xl font-bold text-gray-900">学習コンテンツ</h2>
+          </div>
+          
+          {/* タブナビゲーション */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('recent')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                activeTab === 'recent'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FaHistory className="inline mr-1" />
+              直近の視聴
+            </button>
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                activeTab === 'saved'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FaBookmark className="inline mr-1" />
+              保存済み
+            </button>
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                activeTab === 'completed'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FaCheckCircle className="inline mr-1" />
+              完了済み
+            </button>
+          </div>
         </div>
         
-        {recentVideos.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentVideos.slice(0, 6).map((item: any) => (
+        {/* 直近の視聴タブ */}
+        {activeTab === 'recent' && (
+          recentVideos.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recentVideos.slice(0, 6).map((item: any) => (
+                <Link
+                  key={item._id}
+                  href={`/videos/${item.video?._id}`}
+                  className="group"
+                >
+                  <div className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group-hover:shadow-md">
+                    <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden relative">
+                      {item.video?.thumbnailUrl ? (
+                        <Image
+                          src={item.video.thumbnailUrl} 
+                          alt={item.video?.title || 'Video thumbnail'}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <FaVideo className="text-4xl text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+                      {item.video?.title || '動画タイトル'}
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-2">
+                      {item.video?.instructor?.name || '講師名'}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-theme-600 h-1.5 rounded-full"
+                          style={{ width: `${item.progress || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-600 ml-2">
+                        {item.progress || 0}%
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      最終視聴: {new Date(item.lastWatchedAt).toLocaleDateString('ja-JP')}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <FaHistory className="text-4xl text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">まだ視聴した研修がありません</p>
               <Link
-                key={item._id}
-                href={`/videos/${item.video?._id}`}
-                className="group"
+                href="/videos"
+                className="inline-flex items-center gap-2 bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all"
               >
-                <div className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group-hover:shadow-md">
-                  <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden">
-                    {item.video?.thumbnailUrl && (
-                      <img 
-                        src={item.video.thumbnailUrl} 
-                        alt={item.video?.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
-                    {item.video?.title || '動画タイトル'}
-                  </h3>
-                  <p className="text-xs text-gray-600 mb-2">
-                    {item.video?.instructor?.name || '講師名'}
-                  </p>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">
-                      {new Date(item.watchedAt).toLocaleDateString('ja-JP')}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full ${
-                      item.completed 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {item.completed ? '完了' : `${item.progress}%`}
-                    </span>
-                  </div>
-                </div>
+                <FaPlay />
+                研修動画を見る
               </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <FaHistory className="text-4xl text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">まだ視聴した研修がありません</p>
-            <Link
-              href="/videos"
-              className="inline-flex items-center gap-2 bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all"
-            >
-              <FaPlay />
-              研修動画を見る
-            </Link>
-          </div>
+            </div>
+          )
+        )}
+
+        {/* 保存済みタブ */}
+        {activeTab === 'saved' && (
+          savedVideos.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {savedVideos.slice(0, 6).map((item: any) => (
+                <Link
+                  key={item.id}
+                  href={`/videos/${item.id}`}
+                  className="group"
+                >
+                  <div className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group-hover:shadow-md">
+                    <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden relative">
+                      <div className="flex items-center justify-center h-full">
+                        <FaBookmark className="text-4xl text-blue-500" />
+                      </div>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+                      {item.title || '動画タイトル'}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                        保存済み
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            removeSavedVideo(item.id);
+                          }}
+                          className="text-xs text-red-600 hover:text-red-800 px-2 py-1 rounded"
+                          title="保存解除"
+                        >
+                          削除
+                        </button>
+                        <p className="text-xs text-gray-500">
+                          {new Date(item.savedAt).toLocaleDateString('ja-JP')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FaBookmark className="text-4xl text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">保存済みの動画がありません</p>
+              <div className="flex gap-3 justify-center">
+                <Link
+                  href="/videos"
+                  className="inline-flex items-center gap-2 bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all"
+                >
+                  <FaPlay />
+                  動画を探す
+                </Link>
+                <button
+                  onClick={addTestSavedVideo}
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all"
+                >
+                  <FaBookmark />
+                  テスト動画を保存
+                </button>
+              </div>
+            </div>
+          )
+        )}
+
+        {/* 完了済みタブ */}
+        {activeTab === 'completed' && (
+          watchedVideos.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {watchedVideos.slice(0, 6).map((item: any) => (
+                <Link
+                  key={item.videoId}
+                  href={`/videos/${item.videoId}`}
+                  className="group"
+                >
+                  <div className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group-hover:shadow-md">
+                    <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden relative">
+                      <div className="flex items-center justify-center h-full">
+                        <FaCheckCircle className="text-4xl text-green-500" />
+                      </div>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+                      {mockVideoTitles[item.videoId] || '動画タイトル'}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        完了済み
+                      </span>
+                      <p className="text-xs text-gray-500">
+                        {new Date(item.completedAt).toLocaleDateString('ja-JP')}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FaCheckCircle className="text-4xl text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">完了済みの動画がありません</p>
+              <Link
+                href="/videos"
+                className="inline-flex items-center gap-2 bg-theme-600 text-white px-4 py-2 rounded-xl hover:bg-theme-700 transition-all"
+              >
+                <FaPlay />
+                動画を見る
+              </Link>
+            </div>
+          )
         )}
       </div>
 
@@ -491,17 +739,29 @@ export default function MyPage() {
                 {/* プロフィール画像 */}
                 <div className="flex flex-col items-center space-y-4">
                   <div className="relative">
-                    {profileData.avatarUrl ? (
-                      <img
-                        src={profileData.avatarUrl}
-                        alt="プロフィール画像"
-                        className="w-20 h-20 rounded-full object-cover border-4 border-gray-200"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-2xl font-bold">
-                        {user.name.charAt(0)}
-                      </div>
-                    )}
+                    <div className="relative w-20 h-20">
+                      {profileData.avatarUrl ? (
+                        <Image
+                          src={profileData.avatarUrl}
+                          alt="プロフィール画像"
+                          fill
+                          className="rounded-full object-cover border-4 border-gray-200"
+                          sizes="80px"
+                          onError={(e) => {
+                            console.error('Failed to load profile image:', profileData.avatarUrl);
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.parentElement?.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                    <div 
+                      className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-2xl font-bold"
+                      style={{ display: profileData.avatarUrl ? 'none' : 'flex' }}
+                    >
+                      {user.name.charAt(0)}
+                    </div>
                     <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
                       <FaCamera className="text-xs" />
                       <input
@@ -580,25 +840,34 @@ export default function MyPage() {
                   <textarea
                     value={profileData.bio}
                     onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                    rows={4}
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="自己紹介文を入力してください"
+                    rows={4}
+                    placeholder="自己紹介を入力してください"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-8">
+              <div className="flex gap-3 mt-8">
                 <button
                   onClick={handleSaveProfile}
                   disabled={savingProfile}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <FaSave />
-                  {savingProfile ? '保存中...' : '保存'}
+                  {savingProfile ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      保存中...
+                    </>
+                  ) : (
+                    <>
+                      <FaSave />
+                      保存する
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
+                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 transition-all"
                 >
                   キャンセル
                 </button>

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current user from session
-    const currentUser = getUserFromSession(authToken);
+    const currentUser = await getUserFromSession(authToken);
     if (!currentUser) {
       return NextResponse.json(
         { error: 'Invalid session' },

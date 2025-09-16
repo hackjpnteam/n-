@@ -37,6 +37,13 @@ export default function MembersPage() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('API Response:', data);
+        console.log('Members data:', data.members);
+        if (data.members) {
+          data.members.forEach((member: any) => {
+            console.log(`Member: ${member.name}, avatarUrl: "${member.profile?.avatarUrl}"`);
+          });
+        }
         setMembers(data.members || []);
         setCurrentUserId(data.currentUserId || '');
         console.log(`Loaded ${data.members?.length || 0} members`);
@@ -99,16 +106,22 @@ export default function MembersPage() {
           >
             {/* Large Profile Image */}
             <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200">
-              {member.profile.avatarUrl ? (
+              {(member.profile.avatarUrl && member.profile.avatarUrl !== '') ? (
                 <img
                   src={member.profile.avatarUrl}
                   alt={`${member.name}のプロフィール画像`}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/default-avatar.png';
+                  }}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-6xl">
-                  {member.name.charAt(0)}
-                </div>
+                <img
+                  src="/default-avatar.png"
+                  alt={`${member.name}のプロフィール画像`}
+                  className="w-full h-full object-cover"
+                />
               )}
               
               
