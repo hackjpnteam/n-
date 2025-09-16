@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'user' | 'admin';
+  id?: string;
+  email?: string | null;
+  name?: string | null;
+  image?: string | null;
+  role?: 'user' | 'admin';
 }
 
 interface AuthContextType {
@@ -28,61 +31,53 @@ export function useAuth() {
 }
 
 export function useAuthLogic() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refreshUser = async () => {
-    try {
-      const { fetchJSON } = await import('@/lib/fetchJSON');
-      const data = await fetchJSON('/api/auth/me');
-      
-      // Check if user data exists in response
-      if (data?.ok && data?.user) {
-        setUser(data.user);
+  useEffect(() => {
+    if (status === 'loading') {
+      setLoading(true);
+    } else {
+      setLoading(false);
+      if (session?.user) {
+        setUser({
+          id: session.user.id || '',
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
+          role: 'user'
+        });
       } else {
         setUser(null);
       }
-    } catch (error) {
-      console.error('Auth check error:', error);
-      setUser(null);
-    } finally {
-      setLoading(false);
+    }
+  }, [session, status]);
+
+  const refreshUser = async () => {
+    // NextAuth automatically manages session refresh
+    // This is kept for backwards compatibility
+    if (session?.user) {
+      setUser({
+        id: session.user.id || '',
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
+        role: 'user'
+      });
     }
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const { fetchJSON } = await import('@/lib/fetchJSON');
-      const data = await fetchJSON('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      setUser(data?.user || null);
-      // Refresh user data to ensure auth state is properly synced
-      await refreshUser();
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'ログインに失敗しました');
-    }
+    // NextAuth v5 only supports OAuth providers in this setup
+    // Redirect to Google login
+    await nextAuthSignIn('google', { callbackUrl: '/mypage' });
   };
 
   const logout = async () => {
-    try {
-      const { fetchJSON } = await import('@/lib/fetchJSON');
-      await fetchJSON('/api/auth/logout', { method: 'POST' });
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-    }
+    await nextAuthSignOut({ callbackUrl: '/' });
   };
-
-  useEffect(() => {
-    refreshUser();
-  }, []);
 
   return {
     user,
