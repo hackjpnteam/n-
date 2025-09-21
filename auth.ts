@@ -31,9 +31,50 @@ export const authConfig: NextAuthConfig = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Temporarily disable credentials auth for Vercel deployment
-        console.log("Credentials authentication temporarily disabled for deployment");
-        return null;
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        try {
+          // Dynamic import to avoid Edge Runtime issues
+          const mongoose = await import('mongoose');
+          const { default: User } = await import('./models/User');
+
+          // Connect to MongoDB
+          if (!mongoose.connections[0].readyState) {
+            await mongoose.connect(process.env.MONGODB_URI!);
+          }
+
+          const user = await User.findOne({ 
+            email: (credentials.email as string).toLowerCase() 
+          });
+
+          if (!user) {
+            console.log("User not found:", credentials.email);
+            return null;
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string, 
+            user.passwordHash
+          );
+
+          if (!isPasswordValid) {
+            console.log("Invalid password for:", credentials.email);
+            return null;
+          }
+
+          console.log("Authentication successful for:", credentials.email);
+          return {
+            id: (user as any)._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role || 'user',
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
+        }
       },
     }),
     Google({
@@ -76,14 +117,39 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, account, user }) {
       if (account && user) {
         token.accessToken = account.access_token;
-        token.role = 'user';
+        token.role = user.role || 'user';
+        token.userId = user.id;
+        
+        // For Google OAuth, find MongoDB user
+        if (account.provider === 'google' && user.email) {
+          try {
+            const mongoose = await import('mongoose');
+            const { default: User } = await import('./models/User');
+            
+            if (!mongoose.connections[0].readyState) {
+              await mongoose.connect(process.env.MONGODB_URI!);
+            }
+            
+            const mongoUser = await User.findOne({ 
+              email: user.email.toLowerCase() 
+            });
+            
+            if (mongoUser) {
+              token.userId = (mongoUser as any)._id.toString();
+              token.role = mongoUser.role || 'user';
+            }
+          } catch (error) {
+            console.error('Error mapping Google user:', error);
+          }
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!;
-        session.user.role = 'user';
+        session.user.id = (token.userId as string) || token.sub!;
+        session.user.role = token.role as string || 'user';
+        
         if (token.picture) {
           session.user.image = token.picture as string;
         }
@@ -91,7 +157,7 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
     async signIn({ user, account }) {
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "credentials") {
         return true;
       }
       return false;

@@ -19,8 +19,26 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Credentials authentication is temporarily disabled
-      toast.error('メール・パスワードログインは一時的に無効です。Googleログインをご利用ください。');
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        callbackUrl: '/mypage',
+        redirect: false,
+      });
+
+      if (result?.error) {
+        console.error('Login error:', result.error);
+        if (result.error === 'CredentialsSignin') {
+          toast.error('メールアドレスまたはパスワードが正しくありません');
+        } else {
+          toast.error('ログインに失敗しました: ' + result.error);
+        }
+      } else if (result?.ok) {
+        toast.success('ログインしました');
+        window.location.href = '/mypage';
+      } else {
+        toast.error('ログインに失敗しました');
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast.error('サーバーエラーが発生しました');
