@@ -19,8 +19,7 @@ interface Video {
     name: string;
   };
   stats: {
-    views: number;
-    avgWatchRate?: number;
+    likes?: number;
   };
 }
 
@@ -147,12 +146,6 @@ export default function AdminVideosPage() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   時間
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  視聴数
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  完了率
-                </th>
                 <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   操作
                 </th>
@@ -182,16 +175,6 @@ export default function AdminVideosPage() {
                     <div className="flex items-center text-sm text-gray-900">
                       <FaClock className="mr-1 text-gray-400" />
                       {formatDuration(video.durationSec)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {video.stats.views.toLocaleString()}回
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {video.stats.avgWatchRate ? `${video.stats.avgWatchRate}%` : '-'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

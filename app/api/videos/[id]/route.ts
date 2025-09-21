@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import connectToMongoDB from '@/lib/mongodb';
+import { auth } from '@/auth';
 import Video from '@/models/Video';
-import { requireAuth } from '@/lib/authMiddleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,18 +9,33 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  // Check authentication
-  const authResult = await requireAuth(request);
-  if (authResult instanceof NextResponse) {
-    return authResult;
-  }
-
   try {
-    await connectDB();
+    // Check authentication
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    await connectToMongoDB();
     
-    const video = await Video.findById(params.id)
-      .populate('instructor')
-      .lean();
+    try {
+      // Try to get from MongoDB first
+      const video = await Video.findById(params.id).lean();
+      
+      if (video) {
+        console.log(`✅ Found video ${params.id} in MongoDB`);
+        return NextResponse.json(video);
+      }
+    } catch (dbError) {
+      console.log('💡 Video not found in MongoDB, trying mock data:', dbError);
+    }
+    
+    // Fallback to mock data
+    const { mockVideos } = await import('@/lib/mockData');
+    const video = mockVideos.find(v => v._id === params.id);
     
     if (!video) {
       return NextResponse.json(

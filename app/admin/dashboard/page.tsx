@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaPlus, FaVideo, FaUsers, FaChartBar, FaEdit, FaTrash, FaEye, FaBuilding, FaBriefcase } from 'react-icons/fa';
-import { mockVideos, mockInstructors } from '@/lib/mockData';
+import { mockVideos } from '@/lib/mockData';
 import AddVideoModal from '@/components/admin/AddVideoModal';
 import AddInstructorModal from '@/components/admin/AddInstructorModal';
 import Image from 'next/image';
@@ -37,15 +37,61 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'videos' | 'instructors' | 'members' | 'admins'>(tabFromUrl);
   const [members, setMembers] = useState<Member[]>([]);
   const [admins, setAdmins] = useState<Member[]>([]);
-  const [videos, setVideos] = useState(mockVideos);
-  const [instructors, setInstructors] = useState(mockInstructors);
+  const [videos, setVideos] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   const [showAddVideoModal, setShowAddVideoModal] = useState(false);
   const [showAddInstructorModal, setShowAddInstructorModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchMembers();
+    fetchInstructors();
+    fetchVideos();
   }, []);
+
+  const fetchVideos = async () => {
+    try {
+      const response = await fetch('/api/videos', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setVideos(data.videos || []);
+      } else {
+        console.error('Failed to fetch videos');
+        // Fallback to mock data
+        const { mockVideos } = await import('@/lib/mockData');
+        setVideos(mockVideos);
+      }
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      // Fallback to mock data
+      const { mockVideos } = await import('@/lib/mockData');
+      setVideos(mockVideos);
+    }
+  };
+
+  const fetchInstructors = async () => {
+    try {
+      const response = await fetch('/api/instructors', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInstructors(data.instructors || []);
+      } else {
+        console.error('Failed to fetch instructors');
+        // Fallback to mock data
+        const { mockInstructors } = await import('@/lib/mockData');
+        setInstructors(mockInstructors);
+      }
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
+      // Fallback to mock data
+      const { mockInstructors } = await import('@/lib/mockData');
+      setInstructors(mockInstructors);
+    }
+  };
 
   const fetchMembers = async () => {
     try {
@@ -136,7 +182,7 @@ export default function AdminDashboard() {
   }
 
   const renderOverview = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <FaVideo className="text-3xl" />
@@ -145,8 +191,7 @@ export default function AdminDashboard() {
         <h3 className="text-3xl font-bold mb-1">{videos.length}</h3>
         <p className="text-blue-100">本の動画</p>
         <Link
-          href="#"
-          onClick={() => setActiveTab('videos')}
+          href="/admin/videos"
           className="inline-block mt-4 text-sm bg-white/20 px-3 py-1 rounded-lg hover:bg-white/30 transition-all"
         >
           管理する
@@ -160,12 +205,12 @@ export default function AdminDashboard() {
         </div>
         <h3 className="text-3xl font-bold mb-1">{members.length}</h3>
         <p className="text-green-100">人のメンバー</p>
-        <button
-          onClick={() => setActiveTab('members')}
+        <Link
+          href="/admin/members"
           className="inline-block mt-4 text-sm bg-white/20 px-3 py-1 rounded-lg hover:bg-white/30 transition-all"
         >
           管理する
-        </button>
+        </Link>
       </div>
 
       <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
@@ -175,15 +220,52 @@ export default function AdminDashboard() {
         </div>
         <h3 className="text-3xl font-bold mb-1">{admins.length}</h3>
         <p className="text-purple-100">人の管理者</p>
-        <button
-          onClick={() => setActiveTab('admins')}
+        <Link
+          href="/admin/admins"
           className="inline-block mt-4 text-sm bg-white/20 px-3 py-1 rounded-lg hover:bg-white/30 transition-all"
         >
           管理する
-        </button>
+        </Link>
+      </div>
+
+      <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
+        <div className="flex items-center justify-between mb-4">
+          <FaUsers className="text-3xl" />
+          <span className="text-orange-100">ゲスト</span>
+        </div>
+        <h3 className="text-3xl font-bold mb-1">{instructors.length}</h3>
+        <p className="text-orange-100">人のゲスト</p>
+        <Link
+          href="/admin/instructors"
+          className="inline-block mt-4 text-sm bg-white/20 px-3 py-1 rounded-lg hover:bg-white/30 transition-all"
+        >
+          管理する
+        </Link>
       </div>
     </div>
   );
+
+  const handleDeleteVideo = async (videoId: string) => {
+    if (!confirm('この動画を削除しますか？')) return;
+    
+    try {
+      const response = await fetch(`/api/admin/videos/${videoId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        toast.success('動画を削除しました');
+        // Refresh the videos list
+        fetchVideos();
+      } else {
+        toast.error('削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast.error('削除中にエラーが発生しました');
+    }
+  };
 
   const renderVideos = () => (
     <div>
@@ -205,7 +287,6 @@ export default function AdminDashboard() {
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">タイトル</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">ゲスト</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">時間</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">視聴回数</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
             </tr>
           </thead>
@@ -218,13 +299,19 @@ export default function AdminDashboard() {
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">{video.instructor.name}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{Math.floor(video.durationSec / 60)}分</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{video.stats.views}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="text-theme-600 hover:text-theme-700 p-1">
+                    <button 
+                      className="text-blue-600 hover:text-blue-700 p-1"
+                      title="編集"
+                    >
                       <FaEdit />
                     </button>
-                    <button className="text-theme-600 hover:text-theme-700 p-1">
+                    <button 
+                      onClick={() => handleDeleteVideo(video._id)}
+                      className="text-red-600 hover:text-red-700 p-1"
+                      title="削除"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -236,6 +323,28 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
+
+  const handleDeleteInstructor = async (instructorId: string) => {
+    if (!confirm('このゲストを削除しますか？')) return;
+    
+    try {
+      const response = await fetch(`/api/admin/instructors/${instructorId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        toast.success('ゲストを削除しました');
+        // Refresh the instructors list
+        fetchInstructors();
+      } else {
+        toast.error('削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error deleting instructor:', error);
+      toast.error('削除中にエラーが発生しました');
+    }
+  };
 
   const renderInstructors = () => (
     <div>
@@ -283,11 +392,19 @@ export default function AdminDashboard() {
             </div>
             
             <div className="flex items-center gap-2">
-              <button className="flex-1 text-theme-600 hover:text-theme-700 text-sm border border-blue-200 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-1">
+              <Link
+                href={`/admin/instructors/${instructor._id}/edit`}
+                className="flex-1 text-blue-600 hover:text-blue-700 text-sm border border-blue-200 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-1"
+                title="編集"
+              >
                 <FaEdit />
                 編集
-              </button>
-              <button className="text-theme-600 hover:text-theme-700 text-sm border border-theme-200 px-3 py-2 rounded-lg hover:bg-theme-50 transition-all">
+              </Link>
+              <button 
+                onClick={() => handleDeleteInstructor(instructor._id)}
+                className="text-red-600 hover:text-red-700 text-sm border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-all"
+                title="削除"
+              >
                 <FaTrash />
               </button>
             </div>
@@ -589,13 +706,19 @@ export default function AdminDashboard() {
       <AddVideoModal
         isOpen={showAddVideoModal}
         onClose={() => setShowAddVideoModal(false)}
-        onAdd={(newVideo) => setVideos([...videos, newVideo])}
+        onAdd={(newVideo) => {
+          // Refresh videos list to get data from database
+          fetchVideos();
+        }}
       />
       
       <AddInstructorModal
         isOpen={showAddInstructorModal}
         onClose={() => setShowAddInstructorModal(false)}
-        onAdd={(newInstructor) => setInstructors([...instructors, newInstructor])}
+        onAdd={(newInstructor) => {
+          // Refresh instructors list to get data from database
+          fetchInstructors();
+        }}
       />
     </div>
   );

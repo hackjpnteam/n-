@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import connectToMongoDB from '@/lib/mongodb';
+import { auth } from '@/auth';
+import User from '@/models/User';
 import Instructor from '@/models/Instructor';
-import { requireAdmin } from '@/lib/authMiddleware';
 
 
 export const dynamic = 'force-dynamic';
@@ -10,21 +11,33 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await connectDB();
-    const instructor = await Instructor.findById(params.id);
+    await connectToMongoDB();
     
-    if (!instructor) {
+    // Try to get from MongoDB first
+    const instructor = await Instructor.findById(params.id).lean();
+    
+    if (instructor) {
+      console.log(`✅ Found instructor ${params.id} in MongoDB`);
+      
+      // Format for frontend compatibility
+      const formattedInstructor = {
+        _id: instructor._id.toString(),
+        name: instructor.name,
+        title: instructor.title || '',
+        bio: instructor.bio || '',
+        avatar: instructor.avatarUrl || '',
+        avatarUrl: instructor.avatarUrl || '',
+        expertise: instructor.tags || [],
+        tags: instructor.tags || []
+      };
+      
+      return NextResponse.json(formattedInstructor);
+    } else {
       return NextResponse.json(
         { error: 'Instructor not found' },
         { status: 404 }
       );
     }
-    
-    // Map avatarUrl to avatar for UI consistency
-    const instructorData: any = instructor.toObject();
-    instructorData.avatar = instructorData.avatarUrl;
-    
-    return NextResponse.json(instructorData);
   } catch (error) {
     console.error('Error fetching instructor:', error);
     return NextResponse.json(
@@ -39,49 +52,76 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check admin authorization
-    const authResult = await requireAdmin(request);
-    if (authResult instanceof NextResponse) {
-      return authResult;
+    // Check authentication
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
-    await connectDB();
+    // Check admin role
+    await connectToMongoDB();
+    const currentUser = await User.findOne({ 
+      email: session.user.email?.toLowerCase() 
+    });
+    
+    if (!currentUser || currentUser.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
     const updates = await request.json();
+    console.log('Updating instructor with data:', JSON.stringify(updates, null, 2));
     
-    console.log('📝 Updating instructor with data:', updates);
+    // Prepare update data for MongoDB
+    const updateData: any = {};
     
-    // Map avatar field to avatarUrl for MongoDB consistency
-    if (updates.avatar !== undefined) {
-      updates.avatarUrl = updates.avatar;
-      delete updates.avatar;
+    if (updates.name) updateData.name = updates.name;
+    if (updates.title) updateData.title = updates.title;
+    if (updates.bio) updateData.bio = updates.bio;
+    if (updates.avatar || updates.avatarUrl) {
+      updateData.avatarUrl = updates.avatar || updates.avatarUrl;
+    }
+    if (updates.expertise && Array.isArray(updates.expertise)) {
+      updateData.tags = updates.expertise;
     }
     
-    // Remove fields that shouldn't be updated directly
-    delete updates._id;
-    delete updates.createdAt;
-    
-    const instructor = await Instructor.findByIdAndUpdate(
+    // Update instructor in MongoDB
+    const updatedInstructor = await Instructor.findByIdAndUpdate(
       params.id,
-      { $set: updates },
+      { $set: updateData },
       { new: true, runValidators: true }
-    );
+    ).lean();
     
-    if (!instructor) {
+    if (!updatedInstructor) {
       return NextResponse.json(
         { error: 'Instructor not found' },
         { status: 404 }
       );
     }
     
-    console.log('✅ Instructor updated successfully:', {
-      id: instructor._id,
-      name: instructor.name,
-      avatarUrl: instructor.avatarUrl
-    });
-
+    console.log(`✅ Instructor ${params.id} updated in MongoDB`);
+    
+    // Format response for frontend compatibility
+    const formattedInstructor = {
+      _id: updatedInstructor._id.toString(),
+      name: updatedInstructor.name,
+      title: updatedInstructor.title || '',
+      bio: updatedInstructor.bio || '',
+      avatar: updatedInstructor.avatarUrl || '',
+      avatarUrl: updatedInstructor.avatarUrl || '',
+      expertise: updatedInstructor.tags || [],
+      tags: updatedInstructor.tags || [],
+      updatedAt: new Date()
+    };
+    
     return NextResponse.json({
-      message: '講師情報を更新しました',
-      instructor
+      message: 'ゲスト情報を更新しました',
+      instructor: formattedInstructor
     });
   } catch (error) {
     console.error('Error updating instructor:', error);
@@ -97,24 +137,42 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check admin authorization
-    const authResult = await requireAdmin(request);
-    if (authResult instanceof NextResponse) {
-      return authResult;
+    // Check authentication
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
-    await connectDB();
-    const instructor = await Instructor.findByIdAndDelete(params.id);
+    // Check admin role
+    await connectToMongoDB();
+    const currentUser = await User.findOne({ 
+      email: session.user.email?.toLowerCase() 
+    });
     
-    if (!instructor) {
+    if (!currentUser || currentUser.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    // Delete instructor from MongoDB
+    const deletedInstructor = await Instructor.findByIdAndDelete(params.id);
+    
+    if (!deletedInstructor) {
       return NextResponse.json(
         { error: 'Instructor not found' },
         { status: 404 }
       );
     }
     
+    console.log(`✅ Instructor ${params.id} deleted from MongoDB by admin ${currentUser._id}`);
+    
     return NextResponse.json({
-      message: '講師を削除しました'
+      message: 'ゲストを削除しました'
     });
   } catch (error) {
     console.error('Error deleting instructor:', error);

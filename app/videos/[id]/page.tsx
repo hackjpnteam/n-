@@ -303,7 +303,7 @@ export default function VideoPage() {
                 <div className="flex items-center gap-3">
                   <img
                     src={instructor.avatarUrl}
-                    alt={instructor.name}
+                    alt={instructor.name || 'Instructor'}
                     className="w-12 h-12 rounded-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
@@ -311,10 +311,10 @@ export default function VideoPage() {
                     }}
                   />
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold hidden">
-                    {instructor.name.charAt(0)}
+                    {instructor.name?.charAt(0) || '?'}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{instructor.name}</p>
+                    <p className="font-semibold text-gray-900">{instructor.name || 'Unknown Instructor'}</p>
                     {instructor.title && (
                       <p className="text-sm text-gray-600">{instructor.title}</p>
                     )}

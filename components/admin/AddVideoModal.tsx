@@ -17,9 +17,7 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
     category: '',
     instructorId: '',
     videoUrl: '',
-    thumbnailUrl: '',
-    durationSec: 0,
-    difficulty: 'beginner' as 'beginner' | 'intermediate' | 'advanced'
+    thumbnailUrl: ''
   });
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
@@ -90,41 +88,74 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
     // Upload thumbnail if file is selected
     const thumbnailUrl = await uploadThumbnail();
 
-    const newVideo = {
-      _id: Math.random().toString(36).substr(2, 9),
+    const videoData = {
       title: formData.title,
       description: formData.description,
       category: formData.category,
       instructor: {
+        _id: instructor._id,
         name: instructor.name,
         avatarUrl: instructor.avatarUrl
       },
       thumbnailUrl: thumbnailUrl,
-      videoUrl: formData.videoUrl,
-      durationSec: formData.durationSec,
-      difficulty: formData.difficulty,
-      stats: {
-        views: 0,
-        likes: 0,
-        rating: 0
-      },
-      createdAt: new Date().toISOString()
+      sourceUrl: formData.videoUrl
     };
 
-    onAdd(newVideo);
-    setFormData({
-      title: '',
-      description: '',
-      category: '',
-      instructorId: '',
-      videoUrl: '',
-      thumbnailUrl: '',
-      durationSec: 0,
-      difficulty: 'beginner'
-    });
-    setThumbnailFile(null);
-    setThumbnailPreview('');
-    onClose();
+    try {
+      const response = await fetch('/api/admin/videos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(videoData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert('動画を追加しました！');
+        
+        // Create video object for local state update
+        const newVideo = {
+          _id: result.video.id,
+          title: videoData.title,
+          description: videoData.description,
+          category: videoData.category,
+          instructor: {
+            name: instructor.name,
+            avatarUrl: instructor.avatarUrl
+          },
+          thumbnailUrl: thumbnailUrl,
+          videoUrl: videoData.sourceUrl,
+          stats: {
+            views: 0,
+            likes: 0,
+            rating: 0
+          },
+          createdAt: new Date().toISOString()
+        };
+
+        onAdd(newVideo);
+        
+        setFormData({
+          title: '',
+          description: '',
+          category: '',
+          instructorId: '',
+          videoUrl: '',
+          thumbnailUrl: ''
+        });
+        setThumbnailFile(null);
+        setThumbnailPreview('');
+        onClose();
+      } else {
+        const error = await response.json();
+        alert('動画の追加に失敗しました: ' + (error.error || 'エラーが発生しました'));
+      }
+    } catch (error) {
+      console.error('Error adding video:', error);
+      alert('動画の追加中にエラーが発生しました');
+    }
   };
 
   return (
@@ -292,36 +323,6 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  再生時間（分）
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="1"
-                  value={Math.floor(formData.durationSec / 60)}
-                  onChange={(e) => setFormData({ ...formData, durationSec: parseInt(e.target.value) * 60 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  難易度
-                </label>
-                <select
-                  value={formData.difficulty}
-                  onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-                >
-                  <option value="beginner">初級</option>
-                  <option value="intermediate">中級</option>
-                  <option value="advanced">上級</option>
-                </select>
-              </div>
-            </div>
 
             <div className="flex items-center gap-4 pt-4">
               <button

@@ -28,31 +28,31 @@ export default function AdminDashboard() {
 
   const adminMenus = [
     {
-      title: '講師管理',
+      title: 'ゲスト管理',
       description: 'ゲスト講師の追加・編集・削除',
       icon: FaUsers,
-      href: '/admin/dashboard?tab=instructors',
+      href: '/admin/instructors',
       color: 'from-blue-500 to-blue-600'
     },
     {
       title: '動画管理',
       description: '研修動画の追加・編集・削除',
       icon: FaVideo,
-      href: '/admin/dashboard?tab=videos',
+      href: '/admin/videos',
       color: 'from-green-500 to-green-600'
     },
     {
-      title: '会員管理',
+      title: 'メンバー管理',
       description: '一般ユーザーの管理・権限設定',
       icon: FaUsers,
-      href: '/admin/dashboard?tab=members',
+      href: '/admin/members',
       color: 'from-teal-500 to-teal-600'
     },
     {
       title: '管理者管理',
       description: '管理者ユーザーの管理・権限変更',
       icon: FaUsers,
-      href: '/admin/dashboard?tab=admins',
+      href: '/admin/members?role=admin',
       color: 'from-purple-500 to-purple-600'
     }
   ];

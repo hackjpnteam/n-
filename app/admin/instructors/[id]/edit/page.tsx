@@ -18,10 +18,7 @@ export default function EditInstructorPage({ params }: { params: { id: string } 
     title: '',
     bio: '',
     avatar: '',
-    expertise: [] as string[],
-    rating: 0,
-    totalStudents: 0,
-    totalCourses: 0
+    expertise: [] as string[]
   });
   const [expertiseInput, setExpertiseInput] = useState('');
 
@@ -112,9 +109,7 @@ export default function EditInstructorPage({ params }: { params: { id: string } 
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'rating' || name === 'totalStudents' || name === 'totalCourses' 
-        ? parseFloat(value) || 0 
-        : value
+      [name]: value
     }));
   };
 
@@ -272,51 +267,6 @@ export default function EditInstructorPage({ params }: { params: { id: string } 
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              評価
-            </label>
-            <input
-              type="number"
-              name="rating"
-              value={formData.rating}
-              onChange={handleChange}
-              step="0.1"
-              min="0"
-              max="5"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              受講者数
-            </label>
-            <input
-              type="number"
-              name="totalStudents"
-              value={formData.totalStudents}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              コース数
-            </label>
-            <input
-              type="number"
-              name="totalCourses"
-              value={formData.totalCourses}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-            />
-          </div>
-        </div>
 
         <div className="flex gap-4">
           <button

@@ -14,9 +14,6 @@ interface Instructor {
   bio: string;
   avatar: string;
   expertise: string[];
-  rating: number;
-  totalStudents: number;
-  totalCourses: number;
 }
 
 export default function AdminInstructorsPage() {
@@ -134,12 +131,6 @@ export default function AdminInstructorsPage() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   専門分野
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  評価
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  受講者数
-                </th>
                 <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   操作
                 </th>
@@ -188,16 +179,6 @@ export default function AdminInstructorsPage() {
                           +{(instructor.expertise || []).length - 2}
                         </span>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      ⭐ {instructor.rating || '0.0'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {(instructor.totalStudents || 0).toLocaleString()}人
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

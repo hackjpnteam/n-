@@ -12,6 +12,7 @@ export interface IInstructor extends Document {
     website?: string;
   };
   tags: string[];
+  createdBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,7 +44,11 @@ const InstructorSchema = new Schema<IInstructor>({
   tags: [{
     type: String,
     trim: true
-  }]
+  }],
+  createdBy: {
+    type: String,
+    required: false
+  }
 }, {
   timestamps: true
 });

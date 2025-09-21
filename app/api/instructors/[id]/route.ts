@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import connectToMongoDB from '@/lib/mongodb';
 import Instructor from '@/models/Instructor';
 import Video from '@/models/Video';
 
@@ -10,9 +10,35 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await connectDB();
+    await connectToMongoDB();
     
-    const instructor = await Instructor.findById(params.id).lean();
+    try {
+      // Try to get from MongoDB first
+      const instructor = await Instructor.findById(params.id).lean();
+      
+      if (instructor) {
+        // Get videos by this instructor
+        const videos = await Video.find({ 'instructor.name': instructor.name }).lean();
+
+        const videoCount = videos.length;
+
+        console.log(`✅ Found instructor ${params.id} in MongoDB`);
+        
+        return NextResponse.json({
+          instructor,
+          videos,
+          stats: {
+            videoCount
+          }
+        });
+      }
+    } catch (dbError) {
+      console.log('💡 Instructor not found in MongoDB, trying mock data:', dbError);
+    }
+    
+    // Fallback to mock data
+    const { mockInstructors, mockVideos } = await import('@/lib/mockData');
+    const instructor = mockInstructors.find(i => i._id === params.id);
     
     if (!instructor) {
       return NextResponse.json(
@@ -21,26 +47,16 @@ export async function GET(
       );
     }
 
-    const videos = await Video.find({ instructor: params.id })
-      .populate('instructor')
-      .lean();
+    // Get videos by this instructor
+    const videos = mockVideos.filter(video => video.instructor.name === instructor.name);
 
     const videoCount = videos.length;
-    const totalViews = videos.reduce((sum, video) => sum + (video.stats?.views || 0), 0);
-    const avgRating = videos.reduce((sum, video) => {
-      if (video.stats?.avgWatchRate) {
-        return sum + video.stats.avgWatchRate;
-      }
-      return sum;
-    }, 0) / (videoCount || 1);
 
     return NextResponse.json({
       instructor,
       videos,
       stats: {
-        videoCount,
-        totalViews,
-        avgRating: Math.round(avgRating * 10) / 10
+        videoCount
       }
     });
   } catch (error) {

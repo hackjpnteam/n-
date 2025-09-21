@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { getUserFromSession } from '@/lib/auth';
-
+import { auth } from '@/auth';
+import connectToMongoDB from '@/lib/mongodb';
+import User from '@/models/User';
+import Instructor from '@/models/Instructor';
 
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const authToken = request.cookies.get('auth-token')?.value;
-    
-    if (!authToken) {
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Get current user from session
-    const currentUser = await getUserFromSession(authToken);
+    // Check admin role
+    await connectToMongoDB();
+    const currentUser = await User.findOne({ 
+      email: session.user.email?.toLowerCase() 
+    });
+    
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json(
         { error: 'Admin access required' },
@@ -41,6 +46,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Instructor ID required' },
         { status: 400 }
+      );
+    }
+
+    // Verify instructor exists
+    const instructor = await Instructor.findById(instructorId);
+    if (!instructor) {
+      return NextResponse.json(
+        { error: 'Instructor not found' },
+        { status: 404 }
       );
     }
 
@@ -80,6 +94,13 @@ export async function POST(request: NextRequest) {
 
     // Return the URL path (relative to public directory)
     const avatarUrl = `/uploads/instructors/${filename}`;
+
+    // Update instructor with new avatar URL
+    await Instructor.findByIdAndUpdate(
+      instructorId,
+      { $set: { avatarUrl } },
+      { new: true }
+    );
 
     console.log('✅ Instructor avatar uploaded successfully:', {
       instructorId,

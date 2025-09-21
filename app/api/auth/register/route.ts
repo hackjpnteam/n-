@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import mongoose from 'mongoose';
+import connectToMongoDB from '@/lib/mongodb';
 import User from '@/models/User';
-
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
-async function connectDB() {
-  if (mongoose.connections[0].readyState) {
-    return;
-  }
-  await mongoose.connect(process.env.MONGODB_URI!);
-}
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
+    await connectToMongoDB();
 
     const { name, email, password } = await request.json();
 
