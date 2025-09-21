@@ -15,50 +15,9 @@ export const authConfig: NextAuthConfig = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        try {
-          // Dynamic import to avoid Edge Runtime issues
-          const mongoose = await import('mongoose');
-          const { default: User } = await import('./models/User');
-
-          // Connect to MongoDB
-          if (!mongoose.connections[0].readyState) {
-            await mongoose.connect(process.env.MONGODB_URI!);
-          }
-
-          const user = await User.findOne({ 
-            email: credentials.email.toLowerCase() 
-          });
-
-          if (!user) {
-            console.log("User not found in MongoDB:", credentials.email);
-            return null;
-          }
-
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password, 
-            user.passwordHash
-          );
-
-          if (!isPasswordValid) {
-            console.log("Invalid password for:", credentials.email);
-            return null;
-          }
-
-          console.log("Authentication successful (MongoDB) for:", credentials.email);
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        } catch (error) {
-          console.error("Auth error:", error);
-          return null;
-        }
+        // Temporarily disable credentials auth for Vercel deployment
+        console.log("Credentials authentication temporarily disabled for deployment");
+        return null;
       },
     }),
     Google({
