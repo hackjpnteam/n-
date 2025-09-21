@@ -39,7 +39,8 @@ export default function MyPage() {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/login');
+      // Use window.location.href for more reliable redirect in production
+      window.location.href = '/auth/login';
       return;
     }
 
@@ -56,7 +57,7 @@ export default function MyPage() {
       });
       setLoading(false);
     }
-  }, [session, status, router]);
+  }, [session, status]);
 
   // Fetch user profile, watch history and saved videos from API
   useEffect(() => {
@@ -312,7 +313,7 @@ export default function MyPage() {
     }
   };
 
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-6">
@@ -328,7 +329,13 @@ export default function MyPage() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-gray-600">リダイレクト中...</p>
+        </div>
+      </div>
+    );
   }
 
   const mockVideoTitles: Record<string, string> = {
