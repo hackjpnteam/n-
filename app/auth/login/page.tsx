@@ -19,28 +19,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        callbackUrl: '/mypage',
-        redirect: false,
-      });
-
-      if (result?.error) {
-        console.error('Login error:', result.error);
-        if (result.error === 'CredentialsSignin') {
-          toast.error('メールアドレスまたはパスワードが正しくありません');
-        } else if (result.error === 'MissingCSRF') {
-          toast.error('セキュリティエラーが発生しました。ページを再読み込みしてください。');
-        } else {
-          toast.error('ログインに失敗しました: ' + result.error);
-        }
-      } else if (result?.ok) {
-        toast.success('ログインしました');
-        window.location.href = '/mypage';
-      } else {
-        toast.error('ログインに失敗しました');
-      }
+      // Credentials authentication is temporarily disabled
+      toast.error('メール・パスワードログインは一時的に無効です。Googleログインをご利用ください。');
     } catch (error) {
       console.error('Login error:', error);
       toast.error('サーバーエラーが発生しました');
@@ -49,12 +29,46 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/mypage" });
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const result = await signIn("google", { 
+        callbackUrl: "/mypage",
+        redirect: false 
+      });
+      
+      if (result?.error) {
+        toast.error('Googleログインでエラーが発生しました: ' + result.error);
+      } else if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error('Google signin error:', error);
+      toast.error('Googleログインでエラーが発生しました');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGmailSignIn = () => {
-    signIn("gmail", { callbackUrl: "/mypage" });
+  const handleGmailSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const result = await signIn("gmail", { 
+        callbackUrl: "/mypage",
+        redirect: false 
+      });
+      
+      if (result?.error) {
+        toast.error('Gmailログインでエラーが発生しました: ' + result.error);
+      } else if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error('Gmail signin error:', error);
+      toast.error('Gmailログインでエラーが発生しました');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
