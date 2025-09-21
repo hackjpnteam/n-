@@ -53,6 +53,10 @@ export default function LoginPage() {
     signIn("google", { callbackUrl: "/mypage" });
   };
 
+  const handleGmailSignIn = () => {
+    signIn("gmail", { callbackUrl: "/mypage" });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4">
       <div className="max-w-md w-full">
@@ -134,6 +138,14 @@ export default function LoginPage() {
             >
               <FaGoogle className="text-xl" />
               Googleでログイン
+            </button>
+
+            <button
+              onClick={handleGmailSignIn}
+              className="w-full mt-3 flex items-center justify-center gap-3 bg-red-50 border border-red-200 text-red-700 py-3 px-4 rounded-xl font-semibold hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transform transition-all hover:scale-[1.02]"
+            >
+              <FaGoogle className="text-xl" />
+              Gmailでログイン（Gmail API）
             </button>
 
             <div className="mt-6 text-center">
