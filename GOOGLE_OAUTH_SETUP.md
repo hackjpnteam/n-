@@ -1,57 +1,39 @@
-# Google OAuth 設定手順
+# Google OAuth設定ガイド
 
-## 1. Google Cloud Console セットアップ
+## Google Cloud Consoleでの設定確認
 
-1. [Google Cloud Console](https://console.cloud.google.com/) にアクセス
-2. 新しいプロジェクトを作成するか、既存のプロジェクトを選択
-3. プロジェクト名: `ナレッジシェア認証` など
+### 1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
 
-## 2. Google+ API の有効化
+### 2. OAuth 2.0 クライアントIDの設定を確認
 
-1. 左側のメニューから「APIとサービス」→「ライブラリ」
-2. 「Google+ API」を検索して選択
-3. 「有効にする」をクリック
+**承認済みのリダイレクトURI**に以下が追加されているか確認：
 
-## 3. OAuth 2.0 認証情報の作成
-
-1. 左側のメニューから「APIとサービス」→「認証情報」
-2. 「認証情報を作成」→「OAuth 2.0 クライアント ID」
-3. アプリケーションの種類: 「ウェブアプリケーション」
-4. 名前: `ナレッジシェア Web Client`
-
-## 4. 承認済み URI の設定
-
-### 承認済みJavaScriptオリジン:
 ```
-http://localhost:3000
-http://localhost:3001
+https://n-gold-chi.vercel.app/api/auth/callback/google
 ```
 
-### 承認済みリダイレクト URI:
+### 3. 承認済みのJavaScript生成元
+
 ```
-http://localhost:3000/api/auth/google/callback
-http://localhost:3001/api/auth/google/callback
-```
-
-## 5. 認証情報の取得
-
-1. 作成完了後、「クライアント ID」と「クライアントシークレット」をコピー
-2. `.env.local` ファイルを更新:
-
-```env
-GOOGLE_CLIENT_ID=your-actual-client-id-here
-GOOGLE_CLIENT_SECRET=your-actual-client-secret-here
+https://n-gold-chi.vercel.app
 ```
 
-## 6. テスト
+### 4. 重要な注意点
 
-1. サーバーを再起動: `npm run dev`
-2. ログインページでGoogleログインボタンをクリック
-3. 実際のGoogleアカウントでログイン
-4. リダイレクト後、ナレッジシェアにログインが完了
+- URLは**https**である必要があります
+- 末尾にスラッシュ(`/`)を付けないでください
+- 本番環境のURLを正確に設定してください
 
-## 注意事項
+### 5. 設定変更後
 
-- Client IDとSecretは秘匿情報です
-- 本番環境では必ず実際の認証情報を使用してください
-- HTTPSを使用することを強く推奨します（本番環境）
+Google Cloud Consoleで設定を変更した場合：
+1. 「保存」ボタンをクリック
+2. 変更が反映されるまで5-10分待つ
+3. ブラウザのキャッシュをクリア（Ctrl+Shift+Delete）
+4. 再度ログインを試す
+
+### トラブルシューティング
+
+エラー「redirect_uri_mismatch」が出る場合：
+- Google Cloud ConsoleのリダイレクトURIが正確に設定されているか確認
+- Vercelの環境変数`NEXTAUTH_URL`が正しいか確認

@@ -1,6 +1,7 @@
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 import { handlers } from "@/auth";
 
 export const { GET, POST } = handlers;
+
+// Vercel Edge Runtime対応
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
