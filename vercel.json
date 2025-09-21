@@ -1,19 +1,8 @@
 {
   "functions": {
-    "app/api/members/route.ts": {
-      "maxDuration": 10
-    },
-    "app/api/admin/members/route.ts": {
-      "maxDuration": 10
-    },
-    "app/api/auth/[...nextauth]/route.ts": {
-      "maxDuration": 10
+    "app/api/**/*.ts": {
+      "maxDuration": 30
     }
   },
-  "rewrites": [
-    {
-      "source": "/members",
-      "destination": "/members"
-    }
-  ]
+  "buildCommand": "npm run build"
 }
