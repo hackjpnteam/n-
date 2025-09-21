@@ -117,7 +117,7 @@ export async function PATCH(
     return NextResponse.json({ 
       message: 'Member role updated successfully',
       user: {
-        id: member._id.toString(),
+        id: (member as any)._id.toString(),
         name: member.name,
         email: member.email,
         role: member.role

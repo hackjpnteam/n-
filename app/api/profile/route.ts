@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Return user profile (without password hash)
-    const { passwordHash, ...userWithoutPassword } = user;
+    const { passwordHash, ...userWithoutPassword } = user as any;
     return NextResponse.json({
       user: userWithoutPassword
     });
@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest) {
     console.log('Received profile data:', profileData);
 
     // Update user profile
-    const updatedUser = updateUserProfile(user.id, profileData);
+    const updatedUser = await updateUserProfile(user.id, profileData);
 
     if (!updatedUser) {
       return NextResponse.json(
@@ -62,10 +62,9 @@ export async function PUT(request: NextRequest) {
     console.log('✅ Profile updated in file system');
 
     // Return updated user (without password hash)
-    const { passwordHash, ...userWithoutPassword } = updatedUser;
     return NextResponse.json({
       message: 'Profile updated successfully',
-      user: userWithoutPassword
+      user: updatedUser
     });
 
   } catch (error) {

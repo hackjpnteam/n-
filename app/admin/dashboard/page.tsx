@@ -26,6 +26,48 @@ type Member = {
   };
 };
 
+type Video = {
+  _id: string;
+  title: string;
+  description: string;
+  durationSec: number;
+  thumbnailUrl: string;
+  sourceUrl: string;
+  instructor: {
+    _id: string;
+    name: string;
+    title: string;
+    bio: string;
+    avatarUrl: string;
+    tags: string[];
+    socials: {
+      twitter?: string;
+      linkedin?: string;
+      website?: string;
+    };
+  };
+  stats: {
+    views: number;
+    avgWatchRate: number;
+  };
+  category: string;
+  tags: string[];
+};
+
+type Instructor = {
+  _id: string;
+  name: string;
+  title: string;
+  bio: string;
+  avatarUrl: string;
+  tags: string[];
+  socials: {
+    twitter?: string;
+    linkedin?: string;
+    website?: string;
+  };
+};
+
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -37,8 +79,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'videos' | 'instructors' | 'members' | 'admins'>(tabFromUrl);
   const [members, setMembers] = useState<Member[]>([]);
   const [admins, setAdmins] = useState<Member[]>([]);
-  const [videos, setVideos] = useState([]);
-  const [instructors, setInstructors] = useState([]);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [showAddVideoModal, setShowAddVideoModal] = useState(false);
   const [showAddInstructorModal, setShowAddInstructorModal] = useState(false);
   const [loading, setLoading] = useState(true);

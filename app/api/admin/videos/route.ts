@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     await connectToMongoDB();
     const currentUser = await User.findOne({ 
       email: session.user.email?.toLowerCase() 
-    });
+    }) as any;
     
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json(
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     
     const video = new Video(videoToSave);
     
-    const savedVideo = await video.save();
+    const savedVideo = await video.save() as any;
     console.log('✅ Video saved to MongoDB:', savedVideo._id);
     
     return NextResponse.json({

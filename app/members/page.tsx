@@ -173,10 +173,10 @@ export default function MembersPage() {
 
                 {/* フッター情報 */}
                 <div className="text-xs text-gray-500 border-t border-gray-100 pt-3">
-                  <p>参加: {new Date(member.joinedAt).toLocaleDateString('ja-JP', {
+                  <p>参加: {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString('ja-JP', {
                     year: 'numeric',
                     month: 'short'
-                  })}</p>
+                  }) : '不明'}</p>
                 </div>
               </div>
             </div>

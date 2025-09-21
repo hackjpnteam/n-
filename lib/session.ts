@@ -16,9 +16,9 @@ export async function getCurrentUser() {
       });
       
       if (user) {
-        console.log('Found user in MongoDB:', user._id.toString());
+        console.log('Found user in MongoDB:', (user as any)._id.toString());
         return {
-          id: user._id.toString(),
+          id: (user as any)._id.toString(),
           name: user.name,
           email: user.email,
           role: user.role,
@@ -43,7 +43,7 @@ export async function getUserById(userId: string) {
     
     if (user) {
       return {
-        id: user._id.toString(),
+        id: (user as any)._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
@@ -82,7 +82,7 @@ export async function updateUserProfile(userId: string, profileData: any) {
     if (user) {
       console.log('✅ Profile updated in MongoDB for user:', userId);
       return {
-        id: user._id.toString(),
+        id: (user as any)._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
@@ -106,7 +106,7 @@ export async function getAllUsers() {
     const users = await User.find({}, { passwordHash: 0 }).sort({ createdAt: -1 });
     
     return users.map(user => ({
-      id: user._id.toString(),
+      id: (user as any)._id.toString(),
       name: user.name,
       email: user.email,
       role: user.role,

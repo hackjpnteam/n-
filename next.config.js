@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [
       {
@@ -15,6 +14,12 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['mongoose']
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
   }
 }
 

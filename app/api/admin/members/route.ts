@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     console.log('Loaded users from MongoDB:', users.length);
 
     return NextResponse.json({
-      users: users.map(user => ({
+      users: users.map((user: any) => ({
         id: user._id.toString(),
         name: user.name,
         email: user.email,

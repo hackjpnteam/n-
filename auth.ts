@@ -3,6 +3,22 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
+declare module "next-auth" {
+  interface User {
+    role?: string;
+  }
+  
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role?: string;
+      image?: string;
+    };
+  }
+}
+
 export const authConfig: NextAuthConfig = {
   experimental: {
     enableWebAuthn: false,
@@ -68,6 +84,9 @@ export const authConfig: NextAuthConfig = {
       if (token) {
         session.user.id = token.sub!;
         session.user.role = 'user';
+        if (token.picture) {
+          session.user.image = token.picture as string;
+        }
       }
       return session;
     },

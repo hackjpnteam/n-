@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     await connectToMongoDB();
     const currentUser = await User.findOne({ 
       email: session.user.email?.toLowerCase() 
-    });
+    }) as any;
     
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       createdBy: currentUser._id.toString()
     });
     
-    const savedInstructor = await instructor.save();
+    const savedInstructor = await instructor.save() as any;
     console.log('✅ Instructor saved to MongoDB:', savedInstructor._id);
     
     return NextResponse.json({
