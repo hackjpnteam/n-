@@ -21,7 +21,7 @@ export const authConfig: NextAuthConfig = {
         try {
           // Connect to MongoDB
           if (!mongoose.connections[0].readyState) {
-            await mongoose.connect(process.env.MONGODB_URI);
+            await mongoose.connect(process.env.MONGODB_URI!);
           }
 
           const user = await User.findOne({ 
@@ -101,11 +101,9 @@ export const authConfig: NextAuthConfig = {
         // For Google OAuth, find the actual user ID from MongoDB
         if (account.provider === 'google' && user.email) {
           try {
-            const mongoose = require('mongoose');
-            const User = require('./models/User').default;
-            
+            // Connect to MongoDB
             if (!mongoose.connections[0].readyState) {
-              await mongoose.connect(process.env.MONGODB_URI);
+              await mongoose.connect(process.env.MONGODB_URI!);
             }
             
             const mongoUser = await User.findOne({ 
