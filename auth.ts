@@ -24,6 +24,17 @@ export const authConfig: NextAuthConfig = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+    Google({
+      id: "gmail",
+      name: "Gmail",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send"
+        }
+      }
+    }),
   ],
   session: { strategy: "jwt" },
   trustHost: true,
@@ -60,8 +71,10 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, account, user }) {
       if (account && user) {
         token.accessToken = account.access_token;
-        // For now, just use the Google user info without MongoDB lookup
         token.role = 'user'; // Default role
+        
+        // Log for debugging
+        console.log("JWT callback - account:", account?.provider, "user:", user?.email);
       }
       return token;
     },
@@ -69,8 +82,26 @@ export const authConfig: NextAuthConfig = {
       if (token) {
         session.user.id = token.sub!;
         session.user.role = token.role as string || 'user';
+        
+        // Log for debugging
+        console.log("Session callback - user:", session.user?.email);
       }
       return session;
+    },
+    async signIn({ user, account, profile }) {
+      try {
+        console.log("SignIn callback - provider:", account?.provider, "user:", user?.email);
+        
+        // Allow all Google sign-ins for now
+        if (account?.provider === "google" || account?.provider === "gmail") {
+          return true;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error("SignIn callback error:", error);
+        return false;
+      }
     },
   }
 };
