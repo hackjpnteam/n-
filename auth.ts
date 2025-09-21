@@ -60,43 +60,15 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, account, user }) {
       if (account && user) {
         token.accessToken = account.access_token;
-        token.role = user.role;
-        
-        // For Google OAuth, find the actual user ID from MongoDB
-        if (account.provider === 'google' && user.email) {
-          try {
-            // Dynamic import to avoid Edge Runtime issues
-            const mongoose = await import('mongoose');
-            const { default: User } = await import('./models/User');
-            
-            // Connect to MongoDB
-            if (!mongoose.connections[0].readyState) {
-              await mongoose.connect(process.env.MONGODB_URI!);
-            }
-            
-            const mongoUser = await User.findOne({ 
-              email: user.email.toLowerCase() 
-            });
-            
-            if (mongoUser) {
-              token.mongoUserId = mongoUser._id.toString();
-              token.role = mongoUser.role;
-              console.log('Google user mapped to MongoDB ID:', mongoUser._id.toString());
-            }
-          } catch (error) {
-            console.error('Error mapping Google user to MongoDB:', error);
-          }
-        }
+        // For now, just use the Google user info without MongoDB lookup
+        token.role = 'user'; // Default role
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        // Use MongoDB user ID if available, otherwise fall back to token.sub
-        session.user.id = token.mongoUserId || token.sub!;
-        session.user.role = token.role as string;
-        
-        console.log('Session user ID set to:', session.user.id);
+        session.user.id = token.sub!;
+        session.user.role = token.role as string || 'user';
       }
       return session;
     },
