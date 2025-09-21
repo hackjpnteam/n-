@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/useAuth';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -17,12 +17,12 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function CompleteButton({ videoId, defaultCompleted = false, onComplete }: CompleteButtonProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { data: session, status } = useSession();
   const [isCompleted, setIsCompleted] = useState(defaultCompleted);
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: progress } = useSWR(
-    user ? `/api/progress?videoId=${videoId}` : null,
+    session?.user ? `/api/progress?videoId=${videoId}` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -46,7 +46,7 @@ export default function CompleteButton({ videoId, defaultCompleted = false, onCo
       toast.success('視聴完了を記録しました！');
 
       // Try to save to server if user is logged in
-      if (user) {
+      if (session?.user) {
         const response = await fetch('/api/progress', {
           method: 'POST',
           headers: {
@@ -77,13 +77,13 @@ export default function CompleteButton({ videoId, defaultCompleted = false, onCo
 
   // Check localStorage for completion status if not logged in
   useEffect(() => {
-    if (!user && !isCompleted) {
+    if (!session?.user && !isCompleted) {
       const localProgress = JSON.parse(localStorage.getItem('videoProgress') || '{}');
       if (localProgress[videoId]?.status === 'completed') {
         setIsCompleted(true);
       }
     }
-  }, [user, videoId, isCompleted]);
+  }, [session?.user, videoId, isCompleted]);
 
   return (
     <button

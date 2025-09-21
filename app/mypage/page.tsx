@@ -58,13 +58,36 @@ export default function MyPage() {
     }
   }, [session, status, router]);
 
-  // Fetch watch history and saved videos from API
+  // Fetch user profile, watch history and saved videos from API
   useEffect(() => {
     if (user) {
+      fetchUserProfile();
       fetchWatchHistory();
       fetchSavedVideos();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/profile', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const profile = data.user.profile || {};
+        setProfileData({
+          name: data.user.name || session?.user?.name || '',
+          company: profile.company || '',
+          position: profile.position || '',
+          companyUrl: profile.companyUrl || '',
+          bio: profile.bio || '',
+          avatarUrl: profile.avatarUrl || session?.user?.image || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const fetchWatchHistory = async () => {
     try {
@@ -192,6 +215,8 @@ export default function MyPage() {
         const data = await response.json();
         console.log('Profile saved successfully:', data);
         setUser(data.user);
+        // Refresh the profile data to ensure it's up to date
+        await fetchUserProfile();
         toast.success('プロフィールを保存しました！');
         setEditingProfile(false);
       } else {

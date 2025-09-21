@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/useAuth';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import QuestionCard from './QuestionCard';
 import ResultPanel from './ResultPanel';
@@ -27,7 +27,7 @@ interface QuizRunnerProps {
 }
 
 export default function QuizRunner({ quiz, videoId }: QuizRunnerProps) {
-  const { user } = useAuth();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [timeLeft, setTimeLeft] = useState(600); // 10分

@@ -13,6 +13,7 @@ MONGODB_URI=mongodb+srv://study:hj12042014@cluster0.udcucg2.mongodb.net/?retryWr
 ```
 NEXTAUTH_URL=https://your-vercel-app.vercel.app
 NEXTAUTH_SECRET=ZzP3u7Yh1s0mTf4xWq8kN9cB6rL2dQ5p
+AUTH_TRUST_HOST=true
 ```
 
 ### Google OAuth

@@ -48,11 +48,16 @@ const UserSchema = new Schema<IUser>({
   timestamps: true
 });
 
-// Index for queries
-UserSchema.index({ email: 1 });
+// Index for queries (email index is automatic due to unique: true)
 UserSchema.index({ 'profile.company': 1 });
 UserSchema.index({ createdAt: -1 });
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+let User: Model<IUser>;
+
+try {
+  User = mongoose.models?.User || mongoose.model<IUser>('User', UserSchema);
+} catch {
+  User = mongoose.model<IUser>('User', UserSchema);
+}
 
 export default User;

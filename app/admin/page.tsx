@@ -31,31 +31,29 @@ export default function AdminDashboard() {
       title: '講師管理',
       description: 'ゲスト講師の追加・編集・削除',
       icon: FaUsers,
-      href: '/admin/instructors',
+      href: '/admin/dashboard?tab=instructors',
       color: 'from-blue-500 to-blue-600'
     },
     {
       title: '動画管理',
       description: '研修動画の追加・編集・削除',
       icon: FaVideo,
-      href: '/admin/videos',
+      href: '/admin/dashboard?tab=videos',
       color: 'from-green-500 to-green-600'
     },
     {
-      title: '統計情報',
-      description: '視聴統計とユーザー分析',
-      icon: FaChartBar,
-      href: '/admin/analytics',
-      color: 'from-purple-500 to-purple-600',
-      disabled: true
+      title: '会員管理',
+      description: '一般ユーザーの管理・権限設定',
+      icon: FaUsers,
+      href: '/admin/dashboard?tab=members',
+      color: 'from-teal-500 to-teal-600'
     },
     {
-      title: 'システム設定',
-      description: 'アプリケーション設定',
-      icon: FaCog,
-      href: '/admin/settings',
-      color: 'from-orange-500 to-orange-600',
-      disabled: true
+      title: '管理者管理',
+      description: '管理者ユーザーの管理・権限変更',
+      icon: FaUsers,
+      href: '/admin/dashboard?tab=admins',
+      color: 'from-purple-500 to-purple-600'
     }
   ];
 
@@ -66,19 +64,16 @@ export default function AdminDashboard() {
         <p className="text-gray-600 mt-2">ようこそ、{user.name}さん</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {adminMenus.map((menu) => (
           <Link
             key={menu.title}
-            href={menu.disabled ? '#' : menu.href}
-            className={`group ${menu.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+            href={menu.href}
+            className="group"
           >
-            <div className={`bg-gradient-to-br ${menu.color} rounded-2xl p-6 text-white transform transition-all ${!menu.disabled ? 'hover:scale-105 hover:shadow-xl' : ''}`}>
+            <div className={`bg-gradient-to-br ${menu.color} rounded-2xl p-6 text-white transform transition-all hover:scale-105 hover:shadow-xl`}>
               <div className="flex items-center justify-between mb-4">
                 <menu.icon className="text-3xl" />
-                {menu.disabled && (
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">準備中</span>
-                )}
               </div>
               <h3 className="text-xl font-bold mb-2">{menu.title}</h3>
               <p className="text-white/80 text-sm">{menu.description}</p>

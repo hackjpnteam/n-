@@ -1,12 +1,10 @@
 'use client';
 
-import { useAuth } from '@/lib/useAuth';
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
 export default function AuthTestPage() {
-  const { user, loading, login, logout } = useAuth();
   const { data: session, status } = useSession();
   const [testResult, setTestResult] = useState<string>('');
 
@@ -36,8 +34,8 @@ export default function AuthTestPage() {
 
   const testLogin = async () => {
     try {
-      await login('demo@example.com', 'password123');
-      toast.success('デモログイン成功');
+      await signIn('google');
+      toast.success('ログイン中...');
     } catch (error) {
       toast.error('ログイン失敗');
     }
@@ -45,7 +43,7 @@ export default function AuthTestPage() {
 
   const testLogout = async () => {
     try {
-      await logout();
+      await signOut();
       toast.success('ログアウト成功');
     } catch (error) {
       toast.error('ログアウト失敗');
@@ -60,8 +58,8 @@ export default function AuthTestPage() {
         <div className="bg-white rounded-xl p-6 shadow">
           <h2 className="text-xl font-semibold mb-4">現在の認証状態</h2>
           <div className="space-y-2">
-            <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
-            <p><strong>User:</strong> {user ? JSON.stringify(user, null, 2) : 'Not logged in'}</p>
+            <p><strong>Status:</strong> {status}</p>
+            <p><strong>User:</strong> {session?.user ? JSON.stringify(session.user, null, 2) : 'Not logged in'}</p>
           </div>
         </div>
 
@@ -72,7 +70,7 @@ export default function AuthTestPage() {
               NextAuth Session をテスト
             </button>
             <button onClick={testLogin} className="btn-success">
-              デモログイン
+              Googleログイン
             </button>
             <button onClick={testLogout} className="bg-theme-600 text-white px-4 py-2 rounded-xl">
               ログアウト

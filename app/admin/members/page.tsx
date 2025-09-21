@@ -23,6 +23,8 @@ export default function MembersPage() {
         credentials: 'include'
       });
       
+      console.log('API Response Status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
         console.log('API Response:', data);
@@ -40,102 +42,11 @@ export default function MembersPage() {
         
         setMembers(data.members || []);
       } else {
-        console.log('API request failed, using mock data');
-        // Fallback to mock data for demo
-        const mockMembers = [
-          {
-            id: '1',
-            name: '田中学習太郎',
-            email: 'tanaka@example.com',
-            profile: {
-              company: '株式会社テクノロジー',
-              position: 'CTO',
-              avatarUrl: '/uploads/avatars/87831af6-5b11-4e60-9b6a-7f40f220aee6-1757645975379.png'
-            },
-            joinedAt: '2024-01-15',
-            lastAccess: '2024-03-15',
-            completedVideos: 6,
-            totalVideos: 6,
-            completionRate: 100,
-            quizAverage: 85,
-            totalWatchTime: 270,
-            status: 'active'
-          },
-          {
-            id: '2',
-            name: '佐藤勉強花子',
-            email: 'sato@example.com',
-            profile: {
-              company: '株式会社マーケティング',
-              position: '取締役',
-              avatarUrl: '/uploads/avatars/87831af6-5b11-4e60-9b6a-7f40f220aee6-1757646197522.png'
-            },
-            joinedAt: '2024-01-20',
-            lastAccess: '2024-03-14',
-            completedVideos: 5,
-            totalVideos: 6,
-            completionRate: 83,
-            quizAverage: 78,
-            totalWatchTime: 225,
-            status: 'active'
-          },
-          {
-            id: '3',
-            name: '鈴木学習次郎',
-            email: 'suzuki@example.com',
-            profile: {
-              company: '株式会社イノベーション',
-              position: '代表取締役',
-              avatarUrl: '/default-avatar.png'
-            },
-            joinedAt: '2024-02-01',
-            lastAccess: '2024-03-10',
-            completedVideos: 4,
-            totalVideos: 6,
-            completionRate: 67,
-            quizAverage: 72,
-            totalWatchTime: 180,
-            status: 'active'
-          },
-          {
-            id: '4',
-            name: '高橋知識太郎',
-            email: 'takahashi@example.com',
-            profile: {
-              company: '株式会社フィンテック',
-              position: 'VP',
-              avatarUrl: '/default-avatar.png'
-            },
-            joinedAt: '2024-02-10',
-            lastAccess: '2024-02-28',
-            completedVideos: 3,
-            totalVideos: 6,
-            completionRate: 50,
-            quizAverage: 68,
-            totalWatchTime: 135,
-            status: 'inactive'
-          },
-          {
-            id: '5',
-            name: '伊藤学習美',
-            email: 'ito@example.com',
-            profile: {
-              company: '株式会社スタートアップ',
-              position: 'CEO',
-              avatarUrl: '/default-avatar.png'
-            },
-            joinedAt: '2024-02-15',
-            lastAccess: '2024-03-12',
-            completedVideos: 2,
-            totalVideos: 6,
-            completionRate: 33,
-            quizAverage: 65,
-            totalWatchTime: 90,
-            status: 'active'
-          }
-        ];
+        const errorData = await response.text();
+        console.log('API request failed:', response.status, errorData);
         
-        setMembers(mockMembers);
+        // Don't use mock data anymore - just show empty state
+        setMembers([]);
       }
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -161,7 +72,7 @@ export default function MembersPage() {
   const stats = {
     totalMembers: members.length,
     activeMembers: members.filter(m => m.status === 'active').length,
-    averageCompletion: Math.round(members.reduce((sum, m) => sum + m.completionRate, 0) / members.length),
+    averageCompletion: members.length > 0 ? Math.round(members.reduce((sum, m) => sum + m.completionRate, 0) / members.length) : 0,
     totalWatchTime: members.reduce((sum, m) => sum + m.totalWatchTime, 0)
   };
 
@@ -259,6 +170,15 @@ export default function MembersPage() {
       </div>
 
       {/* メンバー一覧テーブル */}
+      {sortedMembers.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="text-center">
+            <FaUsers className="text-5xl text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">まだメンバーがいません</h3>
+            <p className="text-gray-500">新規ユーザーが登録すると、ここに表示されます。</p>
+          </div>
+        </div>
+      ) : (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -316,22 +236,24 @@ export default function MembersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="relative w-10 h-10 mr-4">
-                        {member.profile?.avatarUrl ? (
+                        {member.profile?.avatarUrl && member.profile.avatarUrl !== '/default-avatar.png' ? (
                           <Image
                             src={member.profile.avatarUrl}
                             alt={member.name}
                             fill
                             className="rounded-full object-cover"
                             sizes="40px"
-                            onLoad={() => {
-                              console.log('✅ Image loaded successfully:', member.profile.avatarUrl);
-                            }}
+                            unoptimized
                             onError={(e) => {
-                              console.error('❌ Failed to load image:', member.profile.avatarUrl);
-                              console.error('Image error event:', e);
-                              e.currentTarget.style.display = 'none';
-                              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                              if (fallback) fallback.style.display = 'flex';
+                              const target = e.currentTarget as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const fallback = document.createElement('div');
+                                fallback.className = 'w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-semibold';
+                                fallback.textContent = member.name.charAt(0);
+                                parent.appendChild(fallback);
+                              }
                             }}
                           />
                         ) : (
@@ -412,6 +334,7 @@ export default function MembersPage() {
           </table>
         </div>
       </div>
+      )}
 
       {/* ページネーション */}
       {filteredMembers.length > 20 && (

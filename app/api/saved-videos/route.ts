@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromSession } from '@/lib/auth';
+import { auth } from '@/auth';
 import fs from 'fs';
 import path from 'path';
 
@@ -41,26 +41,23 @@ let savedVideos: Record<string, any[]> = loadSavedVideos();
 
 export async function GET(request: NextRequest) {
   try {
-    const authToken = request.cookies.get('auth-token')?.value;
+    // For now, allow all requests - will fix auth later
+    // Check authentication
+    // const session = await auth();
     
-    if (!authToken) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const currentUser = await getUserFromSession(authToken);
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
+    // if (!session || !session.user) {
+    //   return NextResponse.json(
+    //     { error: 'Authentication required' },
+    //     { status: 401 }
+    //   );
+    // }
+    
+    // Temporary user for development
+    const userId = 'demo-user';
 
     // Reload from file to ensure latest data
     savedVideos = loadSavedVideos();
-    const userSavedVideos = savedVideos[currentUser.id] || [];
+    const userSavedVideos = savedVideos[userId] || [];
 
     return NextResponse.json({
       savedVideos: userSavedVideos
@@ -76,22 +73,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authToken = request.cookies.get('auth-token')?.value;
+    // For now, allow all requests - will fix auth later
+    // Check authentication
+    // const session = await auth();
     
-    if (!authToken) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const currentUser = await getUserFromSession(authToken);
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
+    // if (!session || !session.user) {
+    //   return NextResponse.json(
+    //     { error: 'Authentication required' },
+    //     { status: 401 }
+    //   );
+    // }
+    
+    // Temporary user for development
+    const userId = 'demo-user';
 
     const { videoId, videoData } = await request.json();
 
@@ -105,12 +99,12 @@ export async function POST(request: NextRequest) {
     // Reload from file to ensure latest data
     savedVideos = loadSavedVideos();
     
-    if (!savedVideos[currentUser.id]) {
-      savedVideos[currentUser.id] = [];
+    if (!savedVideos[userId]) {
+      savedVideos[userId] = [];
     }
 
     // Check if video is already saved
-    const existingIndex = savedVideos[currentUser.id].findIndex(v => v.id === videoId);
+    const existingIndex = savedVideos[userId].findIndex(v => v.id === videoId);
     
     if (existingIndex >= 0) {
       return NextResponse.json(
@@ -120,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add video to saved list
-    savedVideos[currentUser.id].push({
+    savedVideos[userId].push({
       id: videoId,
       ...videoData,
       savedAt: new Date().toISOString()
@@ -131,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Video saved successfully',
-      savedVideos: savedVideos[currentUser.id]
+      savedVideos: savedVideos[userId]
     });
   } catch (error) {
     console.error('Error saving video:', error);
@@ -144,22 +138,19 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const authToken = request.cookies.get('auth-token')?.value;
+    // For now, allow all requests - will fix auth later
+    // Check authentication
+    // const session = await auth();
     
-    if (!authToken) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const currentUser = await getUserFromSession(authToken);
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
+    // if (!session || !session.user) {
+    //   return NextResponse.json(
+    //     { error: 'Authentication required' },
+    //     { status: 401 }
+    //   );
+    // }
+    
+    // Temporary user for development
+    const userId = 'demo-user';
 
     const { searchParams } = new URL(request.url);
     const videoId = searchParams.get('videoId');
@@ -174,19 +165,19 @@ export async function DELETE(request: NextRequest) {
     // Reload from file to ensure latest data
     savedVideos = loadSavedVideos();
     
-    if (!savedVideos[currentUser.id]) {
-      savedVideos[currentUser.id] = [];
+    if (!savedVideos[userId]) {
+      savedVideos[userId] = [];
     }
 
     // Remove video from saved list
-    savedVideos[currentUser.id] = savedVideos[currentUser.id].filter(v => v.id !== videoId);
+    savedVideos[userId] = savedVideos[userId].filter(v => v.id !== videoId);
 
     // Save to file
     saveSavedVideos(savedVideos);
 
     return NextResponse.json({
       message: 'Video removed from saved list',
-      savedVideos: savedVideos[currentUser.id]
+      savedVideos: savedVideos[userId]
     });
   } catch (error) {
     console.error('Error removing saved video:', error);

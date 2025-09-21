@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaHome, FaUsers, FaPlay, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt, FaCog, FaUserFriends } from 'react-icons/fa';
-import { useAuth } from '@/lib/useAuth';
+import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
 export default function Navigation() {
   const pathname = usePathname();
-  const { user, logout, loading } = useAuth();
+  const { data: session, status } = useSession();
 
   const navItems = [
     { href: '/', label: 'ホーム', icon: FaHome },
@@ -25,7 +25,7 @@ export default function Navigation() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       toast.success('ログアウトしました');
     } catch (error) {
       toast.error('ログアウトに失敗しました');
@@ -47,9 +47,9 @@ export default function Navigation() {
           <div className="flex items-center space-x-1">
             {navItems.map((item) => {
               // Skip auth-required items if user is not logged in
-              if (item.authRequired && !user) return null;
+              if (item.authRequired && !session?.user) return null;
               // Skip admin-required items if user is not admin
-              if (item.adminRequired && (!user || user.role !== 'admin')) return null;
+              if (item.adminRequired && (!session?.user || session.user.role !== 'admin')) return null;
               
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -71,9 +71,9 @@ export default function Navigation() {
             })}
 
             <div className="ml-4 pl-4 border-l border-gray-200">
-              {loading ? (
+              {status === 'loading' ? (
                 <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-              ) : user ? (
+              ) : session?.user ? (
                 <div className="flex items-center gap-2">
                   <Link
                     href="/mypage"
@@ -84,7 +84,7 @@ export default function Navigation() {
                       マイページ
                     </span>
                   </Link>
-                  {user.role === 'admin' && (
+                  {session.user.role === 'admin' && (
                     <Link
                       href="/admin"
                       className="flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all"

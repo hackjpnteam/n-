@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { getUserFromSession } from '@/lib/auth';
-
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const authToken = request.cookies.get('auth-token')?.value;
-    
-    if (!authToken) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Get current user from session
-    const currentUser = await getUserFromSession(authToken);
+    // Get current user from NextAuth session
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
       return NextResponse.json(
-        { error: 'Invalid session' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }

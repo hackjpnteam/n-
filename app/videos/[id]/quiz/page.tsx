@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/useAuth';
+import { useSession } from 'next-auth/react';
 import QuizRunner from '@/components/quiz/QuizRunner';
 import AttemptsTable from '@/components/quiz/AttemptsTable';
 import useSWR from 'swr';
@@ -12,7 +12,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function QuizPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { data: session, status } = useSession();
   const [showQuiz, setShowQuiz] = useState(false);
 
   const { data: quiz, error: quizError } = useSWR(
@@ -21,7 +21,7 @@ export default function QuizPage() {
   );
 
   const { data: attempts, mutate: mutateAttempts } = useSWR(
-    user ? `/api/quiz/attempts?videoId=${params.id}` : null,
+    session?.user ? `/api/quiz/attempts?videoId=${params.id}` : null,
     fetcher
   );
 
