@@ -2,10 +2,11 @@ import NextAuth, { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
-import User from "./models/User";
 
 export const authConfig: NextAuthConfig = {
+  experimental: {
+    enableWebAuthn: false,
+  },
   providers: [
     Credentials({
       name: "credentials",
@@ -19,6 +20,10 @@ export const authConfig: NextAuthConfig = {
         }
 
         try {
+          // Dynamic import to avoid Edge Runtime issues
+          const mongoose = await import('mongoose');
+          const { default: User } = await import('./models/User');
+
           // Connect to MongoDB
           if (!mongoose.connections[0].readyState) {
             await mongoose.connect(process.env.MONGODB_URI!);
@@ -101,6 +106,10 @@ export const authConfig: NextAuthConfig = {
         // For Google OAuth, find the actual user ID from MongoDB
         if (account.provider === 'google' && user.email) {
           try {
+            // Dynamic import to avoid Edge Runtime issues
+            const mongoose = await import('mongoose');
+            const { default: User } = await import('./models/User');
+            
             // Connect to MongoDB
             if (!mongoose.connections[0].readyState) {
               await mongoose.connect(process.env.MONGODB_URI!);
