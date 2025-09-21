@@ -29,7 +29,7 @@ export default function EditInstructorPage({ params }: { params: { id: string } 
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

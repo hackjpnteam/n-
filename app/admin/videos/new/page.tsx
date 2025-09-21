@@ -32,7 +32,7 @@ export default function NewVideoPage() {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

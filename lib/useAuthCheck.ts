@@ -17,7 +17,7 @@ export function useAuthCheck(requireAdmin: boolean = false) {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

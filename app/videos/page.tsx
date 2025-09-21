@@ -25,7 +25,7 @@ export default function VideosPage() {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

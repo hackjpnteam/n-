@@ -28,7 +28,7 @@ export default function NewInstructorPage() {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

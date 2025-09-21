@@ -39,7 +39,7 @@ export default function MyPage() {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

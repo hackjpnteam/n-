@@ -50,7 +50,7 @@ export default function VideoPage() {
     }
 
     if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 
