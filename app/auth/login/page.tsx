@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaGoogle, FaEye, FaEyeSlash, FaSignInAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -35,7 +37,13 @@ export default function LoginPage() {
         }
       } else if (result?.ok) {
         toast.success('ログインしました');
-        window.location.href = '/mypage';
+        // Use Next.js router for consistent navigation
+        router.push('/mypage');
+        router.refresh();
+        // Fallback for production environments
+        setTimeout(() => {
+          window.location.href = '/mypage';
+        }, 1000);
       } else {
         toast.error('ログインに失敗しました');
       }
@@ -57,8 +65,14 @@ export default function LoginPage() {
       
       if (result?.error) {
         toast.error('Googleログインでエラーが発生しました: ' + result.error);
-      } else if (result?.url) {
-        window.location.href = result.url;
+      } else if (result?.ok || result?.url) {
+        toast.success('Googleログインしました');
+        router.push('/mypage');
+        router.refresh();
+        // Fallback for production environments
+        setTimeout(() => {
+          window.location.href = '/mypage';
+        }, 1000);
       }
     } catch (error) {
       console.error('Google signin error:', error);
@@ -69,24 +83,7 @@ export default function LoginPage() {
   };
 
   const handleGmailSignIn = async () => {
-    try {
-      setIsLoading(true);
-      const result = await signIn("gmail", { 
-        callbackUrl: "/mypage",
-        redirect: false 
-      });
-      
-      if (result?.error) {
-        toast.error('Gmailログインでエラーが発生しました: ' + result.error);
-      } else if (result?.url) {
-        window.location.href = result.url;
-      }
-    } catch (error) {
-      console.error('Gmail signin error:', error);
-      toast.error('Gmailログインでエラーが発生しました');
-    } finally {
-      setIsLoading(false);
-    }
+    toast.error('Gmail APIログインは現在利用できません。Googleログインをご利用ください。');
   };
 
   return (
