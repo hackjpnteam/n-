@@ -46,14 +46,17 @@ export default function LoginPage() {
         }
       } else if (result?.ok) {
         toast.success('ログインしました');
-        // Check if user is admin and redirect accordingly
-        // Known admin emails
-        const adminEmails = ['tomura@hackjpn.com', 'admin@example.com'];
-        const isAdmin = adminEmails.includes(formData.email.toLowerCase());
-        const redirectPath = isAdmin ? '/admin/members' : '/videos';
-        
-        // Force reload to ensure session is updated
-        window.location.href = redirectPath;
+        // Wait a moment for session to establish
+        setTimeout(() => {
+          // Check if user is admin and redirect accordingly
+          // Known admin emails
+          const adminEmails = ['tomura@hackjpn.com', 'admin@example.com'];
+          const isAdmin = adminEmails.includes(formData.email.toLowerCase());
+          const redirectPath = isAdmin ? '/admin/members' : '/';
+          
+          // Force reload to ensure session is updated
+          window.location.href = redirectPath;
+        }, 500);
       } else {
         toast.error('ログインに失敗しました');
       }
@@ -77,9 +80,12 @@ export default function LoginPage() {
         toast.error('Googleログインでエラーが発生しました: ' + result.error);
       } else if (result?.ok || result?.url) {
         toast.success('Googleログインしました');
-        // For Google login, redirect to videos page by default
-        // Admin check will be done after session is established
-        window.location.href = '/videos';
+        // Wait for session to establish
+        setTimeout(() => {
+          // For Google login, redirect to home page by default
+          // Admin check will be done after session is established
+          window.location.href = '/';
+        }, 500);
       }
     } catch (error) {
       console.error('Google signin error:', error);

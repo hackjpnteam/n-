@@ -123,9 +123,11 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async jwt({ token, account, user }) {
       if (account && user) {
-        token.accessToken = account.access_token;
-        token.role = user.role || 'user';
+        // Store user info in token
         token.userId = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.role = user.role || 'user';
         
         // For Google OAuth, find MongoDB user
         if (account.provider === 'google' && user.email) {
@@ -153,9 +155,11 @@ export const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = (token.userId as string) || token.sub!;
-        session.user.role = token.role as string || 'user';
+        session.user.email = (token.email as string) || session.user.email;
+        session.user.name = (token.name as string) || session.user.name;
+        session.user.role = (token.role as string) || 'user';
         
         if (token.picture) {
           session.user.image = token.picture as string;
