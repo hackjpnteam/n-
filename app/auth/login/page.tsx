@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaGoogle, FaEye, FaEyeSlash, FaSignInAlt } from "react-icons/fa";
@@ -9,12 +9,21 @@ import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      const redirectPath = session.user.role === 'admin' ? '/admin/members' : '/mypage';
+      router.push(redirectPath);
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +46,14 @@ export default function LoginPage() {
         }
       } else if (result?.ok) {
         toast.success('ログインしました');
-        // Use Next.js router for consistent navigation
-        router.push('/mypage');
-        router.refresh();
-        // Fallback for production environments
-        setTimeout(() => {
-          window.location.href = '/mypage';
-        }, 1000);
+        // Check if user is admin and redirect accordingly
+        // Known admin emails
+        const adminEmails = ['tomura@hackjpn.com', 'admin@example.com'];
+        const isAdmin = adminEmails.includes(formData.email.toLowerCase());
+        const redirectPath = isAdmin ? '/admin/members' : '/videos';
+        
+        // Force reload to ensure session is updated
+        window.location.href = redirectPath;
       } else {
         toast.error('ログインに失敗しました');
       }
@@ -67,12 +77,9 @@ export default function LoginPage() {
         toast.error('Googleログインでエラーが発生しました: ' + result.error);
       } else if (result?.ok || result?.url) {
         toast.success('Googleログインしました');
-        router.push('/mypage');
-        router.refresh();
-        // Fallback for production environments
-        setTimeout(() => {
-          window.location.href = '/mypage';
-        }, 1000);
+        // For Google login, redirect to videos page by default
+        // Admin check will be done after session is established
+        window.location.href = '/videos';
       }
     } catch (error) {
       console.error('Google signin error:', error);
