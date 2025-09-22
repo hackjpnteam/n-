@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaGoogle, FaEye, FaEyeSlash, FaSignInAlt } from "react-icons/fa";
@@ -46,17 +46,23 @@ export default function LoginPage() {
         }
       } else if (result?.ok) {
         toast.success('ログインしました');
+        // Force session refresh
+        await getSession();
+        
         // Wait a moment for session to establish
-        setTimeout(() => {
+        setTimeout(async () => {
+          // Force session refresh again
+          const newSession = await getSession();
+          
           // Check if user is admin and redirect accordingly
           // Known admin emails
           const adminEmails = ['tomura@hackjpn.com', 'admin@example.com'];
           const isAdmin = adminEmails.includes(formData.email.toLowerCase());
           const redirectPath = isAdmin ? '/admin/members' : '/';
           
-          // Force reload to ensure session is updated
+          // Force page reload to ensure session is properly loaded
           window.location.href = redirectPath;
-        }, 500);
+        }, 1000);
       } else {
         toast.error('ログインに失敗しました');
       }
@@ -80,12 +86,18 @@ export default function LoginPage() {
         toast.error('Googleログインでエラーが発生しました: ' + result.error);
       } else if (result?.ok || result?.url) {
         toast.success('Googleログインしました');
+        // Force session refresh
+        await getSession();
+        
         // Wait for session to establish
-        setTimeout(() => {
+        setTimeout(async () => {
+          // Force session refresh again
+          const newSession = await getSession();
+          
           // For Google login, redirect to home page by default
           // Admin check will be done after session is established
           window.location.href = '/';
-        }, 500);
+        }, 1000);
       }
     } catch (error) {
       console.error('Google signin error:', error);

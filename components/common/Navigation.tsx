@@ -9,6 +9,10 @@ import toast from 'react-hot-toast';
 export default function Navigation() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  
+  // Debug session state
+  console.log('Navigation - Session status:', status);
+  console.log('Navigation - Session data:', session);
 
   const navItems = [
     { href: '/', label: 'ホーム', icon: FaHome },
