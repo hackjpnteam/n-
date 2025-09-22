@@ -6,6 +6,7 @@ export interface IUser extends Document {
   passwordHash: string;
   role: 'user' | 'admin';
   createdAt: Date;
+  lastAccess?: Date;
   profile?: {
     company?: string;
     position?: string;
@@ -36,6 +37,10 @@ const UserSchema = new Schema<IUser>({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  lastAccess: {
+    type: Date,
+    default: Date.now
   },
   profile: {
     company: { type: String, trim: true },

@@ -1,72 +1,50 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaHome, FaUsers, FaPlay, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt, FaCog, FaUserFriends } from 'react-icons/fa';
-import { useSession, signOut } from 'next-auth/react';
+import { FaHome, FaUsers, FaPlay, FaUser, FaSignOutAlt, FaSignInAlt, FaCog, FaUserFriends } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
 
-export default function Navigation() {
+export default function WorkingNavigation() {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
-  const [mounted, setMounted] = useState(false);
-  
-  // Fix hydration mismatch
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Directly fetch session data on mount using simple auth
   useEffect(() => {
-    setMounted(true);
+    const fetchSession = async () => {
+      try {
+        const response = await fetch('/api/auth-simple/session');
+        const data = await response.json();
+        setSession(data);
+      } catch (error) {
+        console.error('Session fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+    
+    // Refetch session every 5 seconds to catch updates
+    const interval = setInterval(fetchSession, 5000);
+    return () => clearInterval(interval);
   }, []);
-  
-  // Debug session state
-  console.log('🔍 Navigation Debug:', {
-    status,
-    sessionExists: !!session,
-    userExists: !!session?.user,
-    userEmail: session?.user?.email,
-    userRole: session?.user?.role,
-    mounted
-  });
-  
-  // Don't render auth-dependent content until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center">
-              <img 
-                src="/n-minus-logo-final.png" 
-                alt="Nマイナス by 上場の法則" 
-                className="h-12 w-auto object-contain"
-              />
-            </Link>
-            <div className="flex items-center space-x-1">
-              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-  
 
   const navItems = [
     { href: '/', label: 'ホーム', icon: FaHome },
     { href: '/instructors', label: 'ゲスト', icon: FaUsers },
     { href: '/videos', label: '動画', icon: FaPlay },
     { href: '/members', label: '会員一覧', icon: FaUserFriends, authRequired: true },
-  ] as Array<{
-    href: string;
-    label: string;
-    icon: any;
-    authRequired?: boolean;
-    adminRequired?: boolean;
-  }>;
+  ];
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await fetch('/api/auth-simple/logout', { method: 'POST' });
       toast.success('ログアウトしました');
+      setSession(null);
+      window.location.href = '/';
     } catch (error) {
       toast.error('ログアウトに失敗しました');
     }
@@ -86,10 +64,7 @@ export default function Navigation() {
           
           <div className="flex items-center space-x-1">
             {navItems.map((item) => {
-              // Skip auth-required items if user is not logged in
               if (item.authRequired && !session?.user) return null;
-              // Skip admin-required items if user is not admin
-              if (item.adminRequired && (!session?.user || session.user.role !== 'admin')) return null;
               
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -111,7 +86,7 @@ export default function Navigation() {
             })}
 
             <div className="ml-4 pl-4 border-l border-gray-200">
-              {status === 'loading' ? (
+              {loading ? (
                 <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
               ) : session?.user ? (
                 <div className="flex items-center gap-2">

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaEdit, FaTrash, FaPlus, FaUser } from 'react-icons/fa';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import toast from 'react-hot-toast';
 
 interface Instructor {
@@ -17,36 +17,15 @@ interface Instructor {
 }
 
 export default function AdminInstructorsPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useSimpleAuth(true);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') {
-      setLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user && session.user.role !== 'admin') {
-      toast.error('管理者権限が必要です');
-      router.push('/');
-      return;
-    }
-
-    if (session?.user) {
-      setUser(session.user);
-      setLoading(false);
+    if (!loading && user) {
       fetchInstructors();
     }
-  }, [session, status, router]);
+  }, [loading, user]);
 
 
   const fetchInstructors = async () => {
@@ -99,6 +78,10 @@ export default function AdminInstructorsPage() {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (

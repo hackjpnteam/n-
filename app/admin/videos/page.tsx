@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaEdit, FaTrash, FaPlus, FaVideo, FaClock } from 'react-icons/fa';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import toast from 'react-hot-toast';
 
 interface Video {
@@ -24,36 +23,15 @@ interface Video {
 }
 
 export default function AdminVideosPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const { user, loading } = useSimpleAuth(true);
   const [videos, setVideos] = useState<Video[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') {
-      setAuthLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user && session.user.role !== 'admin') {
-      toast.error('管理者権限が必要です');
-      router.push('/');
-      return;
-    }
-
-    if (session?.user) {
-      setUser(session.user);
-      setAuthLoading(false);
+    if (!loading && user) {
       fetchVideos();
     }
-  }, [session, status, router]);
+  }, [loading, user]);
 
 
   const fetchVideos = async () => {
@@ -101,7 +79,7 @@ export default function AdminVideosPage() {
     return `${minutes}分`;
   };
 
-  if (authLoading || dataLoading) {
+  if (loading || dataLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
@@ -114,6 +92,10 @@ export default function AdminVideosPage() {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (

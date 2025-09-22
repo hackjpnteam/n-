@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaPlay, FaHistory, FaCog, FaEdit, FaSave, FaBuilding, FaBriefcase, FaGlobe, FaCamera, FaBookmark } from 'react-icons/fa';
@@ -13,7 +12,6 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function MyPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [watchedVideos, setWatchedVideos] = useState<any[]>([]);
@@ -31,33 +29,38 @@ export default function MyPage() {
   });
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Check authentication using NextAuth session
+  // Check authentication using simple auth session API
   useEffect(() => {
-    if (status === 'loading') {
-      setLoading(true);
-      return;
-    }
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth-simple/session');
+        const sessionData = await response.json();
+        
+        if (!sessionData || !sessionData.user) {
+          // No session, redirect to login
+          window.location.href = '/auth/login';
+          return;
+        }
 
-    if (status === 'unauthenticated') {
-      // Use window.location.href for more reliable redirect in production
-      window.location.href = '/auth/login';
-      return;
-    }
+        // Session exists, set user data
+        setUser(sessionData.user);
+        setProfileData({
+          name: sessionData.user.name || '',
+          company: '',
+          position: '',
+          companyUrl: '',
+          bio: '',
+          avatarUrl: sessionData.user.image || ''
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/auth/login';
+      }
+    };
 
-    if (session?.user) {
-      setUser(session.user);
-      // Initialize profile data from NextAuth session
-      setProfileData({
-        name: session.user.name || '',
-        company: '',
-        position: '',
-        companyUrl: '',
-        bio: '',
-        avatarUrl: session.user.image || ''
-      });
-      setLoading(false);
-    }
-  }, [session, status]);
+    checkAuth();
+  }, []);
 
   // Fetch user profile, watch history and saved videos from API
   useEffect(() => {
@@ -77,12 +80,12 @@ export default function MyPage() {
         const data = await response.json();
         const profile = data.user.profile || {};
         setProfileData({
-          name: data.user.name || session?.user?.name || '',
+          name: data.user.name || user?.name || '',
           company: profile.company || '',
           position: profile.position || '',
           companyUrl: profile.companyUrl || '',
           bio: profile.bio || '',
-          avatarUrl: profile.avatarUrl || session?.user?.image || ''
+          avatarUrl: profile.avatarUrl || user?.image || ''
         });
       }
     } catch (error) {
@@ -313,7 +316,7 @@ export default function MyPage() {
     }
   };
 
-  if (loading || status === 'loading') {
+  if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-6">

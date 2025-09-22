@@ -93,28 +93,21 @@ export const authConfig: NextAuthConfig = {
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
   basePath: "/api/auth",
-  debug: process.env.NODE_ENV === "development",
-  useSecureCookies: process.env.NODE_ENV === "production",
-  // Vercel用の設定
+  debug: true,
+  useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-next-auth.session-token' 
+        : 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === "production"
-      }
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+      },
     },
-    csrfToken: {
-      name: `next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === "production"
-      }
-    }
   },
   pages: {
     signIn: "/auth/login",
@@ -155,6 +148,9 @@ export const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
+      console.log('🔥 Session callback - token:', token);
+      console.log('🔥 Session callback - session before:', session);
+      
       if (token && session.user) {
         session.user.id = (token.userId as string) || token.sub!;
         session.user.email = (token.email as string) || session.user.email;
@@ -165,6 +161,8 @@ export const authConfig: NextAuthConfig = {
           session.user.image = token.picture as string;
         }
       }
+      
+      console.log('🔥 Session callback - session after:', session);
       return session;
     },
     async signIn({ user, account }) {

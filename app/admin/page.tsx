@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { FaUsers, FaVideo, FaChartBar, FaCog } from 'react-icons/fa';
-import { useAuthCheck } from '@/lib/useAuthCheck';
+import { FaUsers, FaVideo, FaChartBar, FaCog, FaUserShield, FaUserGraduate } from 'react-icons/fa';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuthCheck(true);
+  const { user, loading } = useSimpleAuth(true);
 
   if (loading) {
     return (
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
     {
       title: 'ゲスト管理',
       description: 'ゲスト講師の追加・編集・削除',
-      icon: FaUsers,
+      icon: FaUserGraduate,
       href: '/admin/instructors',
       color: 'from-blue-500 to-blue-600'
     },
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
     {
       title: '管理者管理',
       description: '管理者ユーザーの管理・権限変更',
-      icon: FaUsers,
+      icon: FaUserShield,
       href: '/admin/members?role=admin',
       color: 'from-purple-500 to-purple-600'
     }

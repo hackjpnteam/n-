@@ -1,6 +1,6 @@
 import { Inter } from 'next/font/google'
 import Providers from './providers'
-import Navigation from '@/components/common/Navigation'
+import WorkingNavigation from '@/components/common/WorkingNavigation'
 import Footer from '@/components/common/Footer'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ja" className="h-full">
       <body className={`${inter.className} h-full flex flex-col`}>
         <Providers>
-          <Navigation />
+          <WorkingNavigation />
           <main className="pt-16 flex-1">
             {children}
           </main>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaGoogle, FaEye, FaEyeSlash, FaSignInAlt } from "react-icons/fa";
@@ -9,7 +8,8 @@ import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const [session, setSession] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,54 +17,55 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already logged in
+  // Check authentication using simple auth session API
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      const redirectPath = session.user.role === 'admin' ? '/admin/members' : '/mypage';
-      router.push(redirectPath);
-    }
-  }, [session, status, router]);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth-simple/session');
+        const sessionData = await response.json();
+        
+        if (sessionData && sessionData.user) {
+          setSession(sessionData);
+          // If already authenticated, redirect to mypage
+          router.push('/mypage');
+          return;
+        }
+        setSession(null);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setSession(null);
+      } finally {
+        setSessionLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        callbackUrl: '/mypage',
-        redirect: false,
+      const response = await fetch('/api/auth-simple/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-      if (result?.error) {
-        console.error('Login error:', result.error);
-        if (result.error === 'CredentialsSignin') {
-          toast.error('メールアドレスまたはパスワードが正しくありません');
-        } else {
-          toast.error('ログインに失敗しました: ' + result.error);
-        }
-      } else if (result?.ok) {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         toast.success('ログインしました');
-        // Force session refresh
-        await getSession();
-        
-        // Wait a moment for session to establish
-        setTimeout(async () => {
-          // Force session refresh again
-          const newSession = await getSession();
-          
-          // Check if user is admin and redirect accordingly
-          // Known admin emails
-          const adminEmails = ['tomura@hackjpn.com', 'admin@example.com'];
-          const isAdmin = adminEmails.includes(formData.email.toLowerCase());
-          const redirectPath = isAdmin ? '/admin/members' : '/';
-          
-          // Force page reload to ensure session is properly loaded
-          window.location.href = redirectPath;
-        }, 1000);
+        // Redirect all users to mypage after login
+        window.location.href = '/mypage';
       } else {
-        toast.error('ログインに失敗しました');
+        toast.error(data.error || 'ログインに失敗しました');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -94,9 +95,8 @@ export default function LoginPage() {
           // Force session refresh again
           const newSession = await getSession();
           
-          // For Google login, redirect to home page by default
-          // Admin check will be done after session is established
-          window.location.href = '/';
+          // Redirect Google login users to mypage as well
+          window.location.href = '/mypage';
         }, 1000);
       }
     } catch (error) {

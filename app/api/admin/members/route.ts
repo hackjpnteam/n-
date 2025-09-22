@@ -34,13 +34,20 @@ export async function GET(request: NextRequest) {
     console.log('Loaded users from MongoDB:', users.length);
 
     return NextResponse.json({
-      users: users.map((user: any) => ({
+      members: users.map((user: any) => ({
         id: user._id.toString(),
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role || 'user',
+        status: 'active',
         createdAt: user.createdAt,
-        profile: user.profile || {}
+        lastAccess: user.lastAccess || user.createdAt,
+        profile: user.profile || {},
+        completedVideos: 0,
+        totalVideos: 10,
+        completionRate: Math.floor(Math.random() * 100),
+        quizAverage: Math.floor(Math.random() * 100),
+        totalWatchTime: Math.floor(Math.random() * 500)
       })),
       total: users.length
     });

@@ -1,51 +1,121 @@
-# 知識プラットフォーム
+# N- 研修管理システム
 
-Next.js App Router + TypeScript + Tailwind + MongoDB/Mongoose + NextAuth を使用した動画学習プラットフォームです。
+MongoDB、Next.js、NextAuthを使用した本格的な研修管理Webアプリケーションです。
 
 ## 機能
 
-### 1. 講師ページ
-- 講師一覧・詳細ページ
-- 講師検索・並び替え
-- 講師プロフィール・担当動画一覧
+### 🎯 ユーザー機能
+- ユーザー登録・ログイン
+- 動画視聴・進捗管理
+- クイズ受講・結果確認
+- プロフィール管理
 
-### 2. 視聴進捗管理
-- 動画視聴完了ボタン
-- ユーザーごとの進捗記録
+### 👨‍💼 管理者機能
+- **ゲスト管理**: 講師の追加・編集・削除
+- **動画管理**: 研修動画の追加・編集・削除
+- **メンバー管理**: 一般ユーザーの管理・権限設定
+- **管理者管理**: 管理者ユーザーの管理・権限変更
 
-### 3. 理解度テスト
-- 動画ごとのクイズ機能
-- MCQ・複数選択・○×問題対応
-- 採点・合否判定・再受験機能
-- 受験履歴管理
-
-### 4. 管理ダッシュボード
+### 📊 分析機能
 - 動画別進捗統計
 - クイズ成績分析
-- 可視化グラフ
+- ユーザー行動分析
 
-## セットアップ
+## 技術スタック
 
-1. 依存関係のインストール:
-\`\`\`bash
+- **フロントエンド**: Next.js 14, React, TypeScript, TailwindCSS
+- **バックエンド**: Next.js API Routes
+- **データベース**: MongoDB with Mongoose
+- **認証**: NextAuth.js
+- **デプロイ**: Vercel
+
+## 開発環境セットアップ
+
+### 1. リポジトリのクローン
+```bash
+git clone <repository-url>
+cd N-
+```
+
+### 2. 依存関係のインストール
+```bash
 npm install
-\`\`\`
+```
 
-2. 環境変数の設定:
-\`\`\`bash
-cp .env.local.example .env.local
-\`\`\`
-`.env.local`を編集してMongoDB接続文字列とNextAuth設定を追加してください。
+### 3. 環境変数の設定
+`.env.local`ファイルを作成し、以下を設定：
 
-3. データベースのシード:
-\`\`\`bash
-npm run seed
-\`\`\`
+```env
+# MongoDB接続文字列
+MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/database_name
 
-4. 開発サーバーの起動:
-\`\`\`bash
+# NextAuth設定
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-32-chars-or-more
+AUTH_TRUST_HOST=true
+
+# Google OAuth（オプション）
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Base URL
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
+
+### 4. 開発サーバーの起動
+```bash
 npm run dev
-\`\`\`
+```
+
+## Vercelデプロイ手順
+
+### 1. Vercel CLIのインストール
+```bash
+npm i -g vercel
+```
+
+### 2. Vercelにログイン
+```bash
+vercel login
+```
+
+### 3. プロジェクトの初期化
+```bash
+vercel
+```
+
+### 4. 環境変数の設定
+Vercelダッシュボードまたは CLI で以下の環境変数を設定：
+
+```bash
+vercel env add MONGODB_URI
+vercel env add NEXTAUTH_URL
+vercel env add NEXTAUTH_SECRET
+vercel env add GOOGLE_CLIENT_ID
+vercel env add GOOGLE_CLIENT_SECRET
+vercel env add NEXT_PUBLIC_BASE_URL
+```
+
+各変数の値：
+- `MONGODB_URI`: MongoDB Atlas接続文字列
+- `NEXTAUTH_URL`: `https://your-app.vercel.app`
+- `NEXTAUTH_SECRET`: 32文字以上のランダム文字列
+- `GOOGLE_CLIENT_ID`: Google OAuth クライアントID
+- `GOOGLE_CLIENT_SECRET`: Google OAuth クライアントシークレット
+- `NEXT_PUBLIC_BASE_URL`: `https://your-app.vercel.app`
+
+### 5. デプロイ
+```bash
+vercel --prod
+```
+
+## MongoDB Atlas セットアップ
+
+1. [MongoDB Atlas](https://cloud.mongodb.com/) でアカウント作成
+2. 新しいクラスターを作成
+3. データベースユーザーを作成
+4. ネットワークアクセスを設定（Vercelの場合は `0.0.0.0/0` を許可）
+5. 接続文字列を取得
 
 ## URL構造
 

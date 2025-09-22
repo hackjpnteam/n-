@@ -3,13 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaUsers, FaEdit, FaEye, FaSearch, FaFilter, FaDownload } from 'react-icons/fa';
+import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaUsers, FaEdit, FaEye, FaSearch, FaFilter, FaDownload, FaUserShield, FaUserCog } from 'react-icons/fa';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
+import toast from 'react-hot-toast';
 
 export default function MembersPage() {
+  const { user, loading: authLoading } = useSimpleAuth(true);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterRole, setFilterRole] = useState<'all' | 'user' | 'admin'>('all');
 
   useEffect(() => {
     fetchMembers();
@@ -57,14 +61,42 @@ export default function MembersPage() {
     }
   };
 
+  const handleRoleChange = async (memberId: string, newRole: 'user' | 'admin', memberName: string) => {
+    if (!confirm(`${memberName}の権限を${newRole === 'admin' ? '管理者' : '一般ユーザー'}に変更しますか？`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}/role`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (!response.ok) {
+        throw new Error('権限変更に失敗しました');
+      }
+
+      toast.success(`${memberName}の権限を変更しました`);
+      fetchMembers();
+    } catch (error) {
+      console.error('Error changing role:', error);
+      toast.error('権限変更に失敗しました');
+    }
+  };
+
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (member.profile?.company || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = filterStatus === 'all' || member.status === filterStatus;
+    const matchesRole = filterRole === 'all' || member.role === filterRole;
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesRole;
   });
 
   const sortedMembers = filteredMembers.sort((a, b) => b.completionRate - a.completionRate);
@@ -76,7 +108,7 @@ export default function MembersPage() {
     totalWatchTime: members.reduce((sum, m) => sum + m.totalWatchTime, 0)
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center py-12">
@@ -84,6 +116,10 @@ export default function MembersPage() {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -157,6 +193,16 @@ export default function MembersPage() {
               <option value="inactive">非アクティブ</option>
             </select>
             
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value as any)}
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
+            >
+              <option value="all">全ての権限</option>
+              <option value="user">一般ユーザー</option>
+              <option value="admin">管理者</option>
+            </select>
+            
             <button className="px-4 py-3 bg-theme-600 text-white rounded-xl hover:bg-theme-700 transition-colors flex items-center gap-2">
               <FaDownload />
               CSV出力
@@ -204,6 +250,9 @@ export default function MembersPage() {
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   最終アクセス
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  権限
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ステータス
@@ -310,6 +359,16 @@ export default function MembersPage() {
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      member.role === 'admin' 
+                        ? 'bg-purple-100 text-purple-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {member.role === 'admin' ? '管理者' : '一般ユーザー'}
+                    </span>
+                  </td>
+                  
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       member.status === 'active' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-gray-100 text-gray-800'
@@ -326,6 +385,23 @@ export default function MembersPage() {
                       <button className="text-gray-600 hover:text-gray-900 p-1" title="編集">
                         <FaEdit />
                       </button>
+                      {member.role === 'admin' ? (
+                        <button 
+                          onClick={() => handleRoleChange(member.id, 'user', member.name)}
+                          className="text-orange-600 hover:text-orange-900 p-1" 
+                          title="管理者権限を削除"
+                        >
+                          <FaUserCog />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleRoleChange(member.id, 'admin', member.name)}
+                          className="text-purple-600 hover:text-purple-900 p-1" 
+                          title="管理者権限を付与"
+                        >
+                          <FaUserShield />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

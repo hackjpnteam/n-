@@ -1,54 +1,16 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaHome, FaUsers, FaPlay, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt, FaCog, FaUserFriends } from 'react-icons/fa';
 import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
 
-export default function Navigation() {
+export default function ClientNavigation() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const [mounted, setMounted] = useState(false);
-  
-  // Fix hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  
-  // Debug session state
-  console.log('🔍 Navigation Debug:', {
-    status,
-    sessionExists: !!session,
-    userExists: !!session?.user,
-    userEmail: session?.user?.email,
-    userRole: session?.user?.role,
-    mounted
-  });
-  
-  // Don't render auth-dependent content until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center">
-              <img 
-                src="/n-minus-logo-final.png" 
-                alt="Nマイナス by 上場の法則" 
-                className="h-12 w-auto object-contain"
-              />
-            </Link>
-            <div className="flex items-center space-x-1">
-              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-  
+  const [mounted, setMounted] = useState(true);
 
   const navItems = [
     { href: '/', label: 'ホーム', icon: FaHome },
@@ -65,12 +27,22 @@ export default function Navigation() {
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await signOut({ callbackUrl: '/' });
       toast.success('ログアウトしました');
     } catch (error) {
       toast.error('ログアウトに失敗しました');
     }
   };
+
+
+  console.log('🔍 ClientNavigation Debug:', {
+    status,
+    sessionExists: !!session,
+    userExists: !!session?.user,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    mounted
+  });
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
