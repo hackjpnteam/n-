@@ -4,13 +4,11 @@
       "maxDuration": 30
     }
   },
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "NEXTAUTH_URL": "@nextauth_url", 
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "AUTH_TRUST_HOST": "true",
-    "GOOGLE_CLIENT_ID": "@google_client_id",
-    "GOOGLE_CLIENT_SECRET": "@google_client_secret",
-    "NEXT_PUBLIC_BASE_URL": "@next_public_base_url"
-  }
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/mypage",
+      "permanent": false
+    }
+  ]
 }

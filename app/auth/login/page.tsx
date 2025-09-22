@@ -80,7 +80,7 @@ export default function LoginPage() {
       setIsLoading(true);
       const result = await signIn("google", { 
         callbackUrl: "/mypage",
-        redirect: false 
+        redirect: true 
       });
       
       if (result?.error) {

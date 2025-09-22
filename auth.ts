@@ -105,7 +105,7 @@ export const authConfig: NextAuthConfig = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        // Remove domain restriction for Vercel
       },
     },
   },
@@ -114,6 +114,26 @@ export const authConfig: NextAuthConfig = {
     error: "/auth/error",
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Always redirect to /mypage after login
+      // This prevents any unwanted redirects to /admin/members
+      if (url.includes('/api/auth/callback') || url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/mypage`;
+      }
+      
+      // Allow relative URLs
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      
+      // Allow URLs on the same origin  
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      
+      // Default fallback to mypage
+      return `${baseUrl}/mypage`;
+    },
     async jwt({ token, account, user }) {
       if (account && user) {
         // Store user info in token
