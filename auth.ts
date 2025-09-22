@@ -32,8 +32,11 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log("❌ Missing credentials");
           return null;
         }
+
+        console.log("🔍 Attempting login for:", credentials.email);
 
         try {
           // Dynamic import to avoid Edge Runtime issues
@@ -42,7 +45,9 @@ export const authConfig: NextAuthConfig = {
 
           // Connect to MongoDB
           if (!mongoose.connections[0].readyState) {
+            console.log("🔌 Connecting to MongoDB...");
             await mongoose.connect(process.env.MONGODB_URI!);
+            console.log("✅ Connected to MongoDB");
           }
 
           const user = await User.findOne({ 
@@ -50,9 +55,11 @@ export const authConfig: NextAuthConfig = {
           });
 
           if (!user) {
-            console.log("User not found:", credentials.email);
+            console.log("❌ User not found:", credentials.email);
             return null;
           }
+
+          console.log("👤 User found:", user.email, "Role:", user.role);
 
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string, 
@@ -60,11 +67,11 @@ export const authConfig: NextAuthConfig = {
           );
 
           if (!isPasswordValid) {
-            console.log("Invalid password for:", credentials.email);
+            console.log("❌ Invalid password for:", credentials.email);
             return null;
           }
 
-          console.log("Authentication successful for:", credentials.email);
+          console.log("✅ Authentication successful for:", credentials.email);
           return {
             id: (user as any)._id.toString(),
             email: user.email,
@@ -72,7 +79,7 @@ export const authConfig: NextAuthConfig = {
             role: user.role || 'user',
           };
         } catch (error) {
-          console.error("Auth error:", error);
+          console.error("💥 Auth error:", error);
           return null;
         }
       },
