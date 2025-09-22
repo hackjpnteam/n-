@@ -10,9 +10,6 @@ export default function Navigation() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   
-  // Debug session state
-  console.log('Navigation - Session status:', status);
-  console.log('Navigation - Session data:', session);
 
   const navItems = [
     { href: '/', label: 'ホーム', icon: FaHome },
@@ -81,31 +78,27 @@ export default function Navigation() {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/mypage"
-                    className="flex items-center gap-2 px-3 py-2 bg-theme-50 hover:bg-theme-100 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-xl transition-all"
                   >
-                    <FaUser className="text-theme-800" />
-                    <span className="hidden sm:block text-sm font-medium text-theme-700">
-                      マイページ
-                    </span>
+                    <FaUser />
+                    <span className="text-sm font-medium">マイページ</span>
                   </Link>
                   {session.user.role === 'admin' && (
                     <Link
                       href="/admin"
-                      className="flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all"
+                      className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white hover:bg-orange-600 rounded-xl transition-all"
                     >
-                      <FaCog className="text-orange-800" />
-                      <span className="hidden sm:block text-sm font-medium text-orange-700">
-                        管理
-                      </span>
+                      <FaCog />
+                      <span className="text-sm font-medium">管理</span>
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-theme-600 hover:bg-theme-50 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all"
                     title="ログアウト"
                   >
                     <FaSignOutAlt />
-                    <span className="hidden sm:block text-sm">ログアウト</span>
+                    <span className="text-sm">ログアウト</span>
                   </button>
                 </div>
               ) : (
