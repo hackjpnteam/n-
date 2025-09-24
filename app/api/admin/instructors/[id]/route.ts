@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongoDB from '@/lib/mongodb';
-import { auth } from '@/auth';
-import User from '@/models/User';
+import { verifyAdminAuth } from '@/lib/auth-admin';
 import Instructor from '@/models/Instructor';
 
 
@@ -52,27 +51,16 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
-    const session = await auth();
-    if (!session?.user) {
+    // Check admin authentication
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 500 }
       );
     }
-
-    // Check admin role
-    await connectToMongoDB();
-    const currentUser = await User.findOne({ 
-      email: session.user.email?.toLowerCase() 
-    });
     
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    const currentUser = authResult.user;
 
     const updates = await request.json();
     console.log('Updating instructor with data:', JSON.stringify(updates, null, 2));
@@ -137,27 +125,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
-    const session = await auth();
-    if (!session?.user) {
+    // Check admin authentication
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 500 }
       );
     }
-
-    // Check admin role
-    await connectToMongoDB();
-    const currentUser = await User.findOne({ 
-      email: session.user.email?.toLowerCase() 
-    });
     
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    const currentUser = authResult.user;
 
     // Delete instructor from MongoDB
     const deletedInstructor = await Instructor.findByIdAndDelete(params.id);

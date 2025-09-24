@@ -1,31 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import connectToMongoDB from '@/lib/mongodb';
+import { verifyAdminAuth } from '@/lib/auth-admin';
 import User from '@/models/User';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    
-    if (!session || !session.user) {
+    // Check admin authentication
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Check admin role from MongoDB
-    await connectToMongoDB();
-    const currentUser = await User.findOne({ 
-      email: session.user.email?.toLowerCase() 
-    });
-    
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 500 }
       );
     }
 

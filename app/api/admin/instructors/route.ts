@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongoDB from '@/lib/mongodb';
-import { auth } from '@/auth';
-import User from '@/models/User';
+import { verifyAdminAuth } from '@/lib/auth-admin';
 import Instructor from '@/models/Instructor';
 
 export const dynamic = 'force-dynamic';
@@ -9,27 +8,16 @@ export const dynamic = 'force-dynamic';
 // Simple instructor storage in MongoDB
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await auth();
-    if (!session?.user) {
+    // Check admin authentication
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 500 }
       );
     }
-
-    // Check admin role
-    await connectToMongoDB();
-    const currentUser = await User.findOne({ 
-      email: session.user.email?.toLowerCase() 
-    }) as any;
     
-    if (!currentUser || currentUser.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    const currentUser = authResult.user;
 
     const instructorData = await request.json();
     console.log('Instructor data received:', instructorData);
