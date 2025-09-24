@@ -115,13 +115,12 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Always redirect to /mypage after login
-      // This prevents any unwanted redirects to /admin/members
-      if (url.includes('/api/auth/callback') || url === baseUrl || url === `${baseUrl}/`) {
+      // Only redirect auth callbacks to /mypage to prevent unwanted admin redirects
+      if (url.includes('/api/auth/callback')) {
         return `${baseUrl}/mypage`;
       }
       
-      // Allow relative URLs
+      // Allow relative URLs for direct navigation
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
       }
@@ -131,8 +130,13 @@ export const authConfig: NextAuthConfig = {
         return url;
       }
       
-      // Default fallback to mypage
-      return `${baseUrl}/mypage`;
+      // For base URL or root, default to mypage
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/mypage`;
+      }
+      
+      // Default fallback to the requested URL or mypage
+      return url.startsWith(baseUrl) ? url : `${baseUrl}/mypage`;
     },
     async jwt({ token, account, user }) {
       if (account && user) {

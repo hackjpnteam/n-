@@ -24,7 +24,8 @@ export default function Navigation() {
     userExists: !!session?.user,
     userEmail: session?.user?.email,
     userRole: session?.user?.role,
-    mounted
+    mounted,
+    pathname
   });
   
   // Don't render auth-dependent content until mounted to prevent hydration mismatch
@@ -86,6 +87,15 @@ export default function Navigation() {
           
           <div className="flex items-center space-x-1">
             {navItems.map((item) => {
+              // Debug: Log each navigation item processing
+              console.log('🔍 NavItem:', item.label, {
+                authRequired: item.authRequired,
+                adminRequired: item.adminRequired,
+                hasSession: !!session?.user,
+                userRole: session?.user?.role,
+                shouldSkip: (item.authRequired && !session?.user) || (item.adminRequired && (!session?.user || session.user.role !== 'admin'))
+              });
+              
               // Skip auth-required items if user is not logged in
               if (item.authRequired && !session?.user) return null;
               // Skip admin-required items if user is not admin

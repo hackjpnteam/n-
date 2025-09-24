@@ -2,44 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FaSearch } from 'react-icons/fa';
 
 export default function VideosPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [videos, setVideos] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Check authentication
   useEffect(() => {
-    if (status === 'loading') {
-      setAuthLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user) {
-      setUser(session.user);
-      setAuthLoading(false);
-    }
-  }, [session, status, router]);
-
-  useEffect(() => {
-    if (user) {
-      fetchVideos();
-    }
-  }, [searchTerm, selectedCategory, user]);
+    // Fetch videos without authentication requirement for now
+    fetchVideos();
+  }, [searchTerm, selectedCategory]);
 
   const fetchVideos = async () => {
     try {
@@ -62,20 +39,7 @@ export default function VideosPage() {
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-4 text-gray-600">認証確認中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null; // Will redirect to login
-  }
+  // Remove authentication checks temporarily
 
   return (
     <div className="container mx-auto px-4 py-8">
