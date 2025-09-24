@@ -58,10 +58,10 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       user: {
-        id: updatedUser._id.toString(),
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role
+        id: (updatedUser as any)._id.toString(),
+        name: (updatedUser as any).name,
+        email: (updatedUser as any).email,
+        role: (updatedUser as any).role
       }
     });
   } catch (error) {
