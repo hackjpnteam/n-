@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import Link from 'next/link';
 import CompleteButton from '@/components/videos/CompleteButton';
 import { FaBook, FaUser, FaClock, FaEye, FaCheckCircle, FaPlayCircle } from 'react-icons/fa';
@@ -11,9 +11,7 @@ import toast from 'react-hot-toast';
 export default function VideoPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const { user, loading: authLoading } = useSimpleAuth(); // Optional auth for videos
   const [video, setVideo] = useState<any>(null);
   const [instructor, setInstructor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -42,29 +40,13 @@ export default function VideoPage() {
     return 'unknown';
   };
 
-  // Check authentication
-  useEffect(() => {
-    if (status === 'loading') {
-      setAuthLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user) {
-      setUser(session.user);
-      setAuthLoading(false);
-    }
-  }, [session, status, router]);
+  // Authentication is handled by useSimpleAuth hook
 
   useEffect(() => {
-    if (params.id && user) {
+    if (params.id && !authLoading) {
       fetchVideoDetails();
     }
-  }, [params.id, user]);
+  }, [params.id, authLoading]);
 
   const fetchVideoDetails = async () => {
     setLoading(true);
@@ -78,8 +60,10 @@ export default function VideoPage() {
         setVideo(data);
         setInstructor(data.instructor);
         
-        // Record view in watch history
-        await recordWatchHistory(params.id as string, 0, false);
+        // Record view in watch history (only if authenticated)
+        if (user) {
+          await recordWatchHistory(params.id as string, 0, false);
+        }
       } else {
         console.error('Failed to fetch video');
       }
@@ -122,9 +106,7 @@ export default function VideoPage() {
     );
   }
 
-  if (!user) {
-    return null; // Will redirect to login
-  }
+  // Allow access with or without authentication
 
   if (loading) {
     return (
@@ -261,12 +243,22 @@ export default function VideoPage() {
           )}
 
           <div className="flex flex-wrap gap-4">
-            <CompleteButton 
-              videoId={video._id} 
-              onComplete={() => setWatchedPercentage(100)}
-            />
+            {user ? (
+              <CompleteButton 
+                videoId={video._id} 
+                onComplete={() => setWatchedPercentage(100)}
+              />
+            ) : (
+              <Link
+                href="/auth/login"
+                className="rounded-2xl px-6 py-3 font-semibold shadow-lg bg-gradient-to-r from-theme-600 to-theme-700 text-white hover:from-theme-700 hover:to-theme-800 transition-all flex items-center gap-2 transform hover:scale-105"
+              >
+                <FaCheckCircle className="text-lg" />
+                ログインして進捗を記録
+              </Link>
+            )}
             
-            {hasQuiz && (
+            {hasQuiz && user && (
               <Link
                 href={`/videos/${video._id}/quiz`}
                 className="rounded-2xl px-6 py-3 font-semibold shadow-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition-all flex items-center gap-2 transform hover:scale-105"

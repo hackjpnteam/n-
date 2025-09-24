@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import Link from 'next/link';
 import { FaSave, FaArrowLeft } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -10,12 +10,12 @@ import toast from 'react-hot-toast';
 interface Instructor {
   _id: string;
   name: string;
+  avatarUrl?: string;
 }
 
 export default function NewVideoPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useSimpleAuth(true); // Require admin
   const [saving, setSaving] = useState(false);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [formData, setFormData] = useState({
@@ -26,27 +26,10 @@ export default function NewVideoPage() {
   });
 
   useEffect(() => {
-    if (status === 'loading') {
-      setLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user && session.user.role !== 'admin') {
-      toast.error('管理者権限が必要です');
-      router.push('/');
-      return;
-    }
-
-    if (session?.user) {
-      setLoading(false);
+    if (user) {
       fetchInstructors();
     }
-  }, [session, status, router]);
+  }, [user]);
 
 
   const fetchInstructors = async () => {
@@ -64,24 +47,45 @@ export default function NewVideoPage() {
     setSaving(true);
 
     try {
+      // Find the selected instructor object
+      const selectedInstructor = instructors.find(inst => inst._id === formData.instructor);
+      if (!selectedInstructor) {
+        toast.error('講師を選択してください');
+        setSaving(false);
+        return;
+      }
+
+      // Prepare data in the format expected by the API
+      const videoData = {
+        ...formData,
+        instructor: {
+          _id: selectedInstructor._id,
+          name: selectedInstructor.name,
+          avatarUrl: selectedInstructor.avatarUrl || 'https://via.placeholder.com/150'
+        }
+      };
+
+      console.log('Sending video data:', videoData);
+
       const response = await fetch('/api/admin/videos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(formData),
+        body: JSON.stringify(videoData),
       });
 
       if (!response.ok) {
-        throw new Error('追加に失敗しました');
+        const errorData = await response.json();
+        throw new Error(errorData.error || '追加に失敗しました');
       }
 
       toast.success('動画を追加しました');
       router.push('/admin/videos');
     } catch (error) {
       console.error('Error creating video:', error);
-      toast.error('追加に失敗しました');
+      toast.error(error.message || '追加に失敗しました');
     } finally {
       setSaving(false);
     }

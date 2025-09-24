@@ -483,9 +483,9 @@ export default function MyPage() {
         {activeTab === 'recent' && (
           recentVideos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentVideos.slice(0, 6).map((item: any) => (
+              {recentVideos.slice(0, 6).map((item: any, index: number) => (
                 <Link
-                  key={item._id}
+                  key={item._id || item.video?._id || `recent-${index}`}
                   href={`/videos/${item.video?._id}`}
                   className="group"
                 >
@@ -548,9 +548,9 @@ export default function MyPage() {
         {activeTab === 'saved' && (
           savedVideos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {savedVideos.slice(0, 6).map((item: any) => (
+              {savedVideos.slice(0, 6).map((item: any, index: number) => (
                 <Link
-                  key={item.id}
+                  key={item.id || `saved-${index}`}
                   href={`/videos/${item.id}`}
                   className="group"
                 >
@@ -615,9 +615,9 @@ export default function MyPage() {
         {activeTab === 'completed' && (
           watchedVideos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {watchedVideos.slice(0, 6).map((item: any) => (
+              {watchedVideos.slice(0, 6).map((item: any, index: number) => (
                 <Link
-                  key={item.videoId}
+                  key={item.videoId || `completed-${index}`}
                   href={`/videos/${item.videoId}`}
                   className="group"
                 >
@@ -667,8 +667,8 @@ export default function MyPage() {
           
           {watchedVideos.length > 0 ? (
             <div className="space-y-4">
-              {watchedVideos.map(video => (
-                <div key={video.videoId} className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
+              {watchedVideos.map((video, index) => (
+                <div key={video.videoId || `video-${index}`} className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
                   <div>
                     <h3 className="font-semibold text-gray-900">
                       {mockVideoTitles[video.videoId] || `動画 ${video.videoId}`}

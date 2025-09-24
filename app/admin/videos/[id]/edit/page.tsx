@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import Link from 'next/link';
 import { FaSave, FaArrowLeft, FaImage, FaTimes } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -14,8 +14,7 @@ interface Instructor {
 
 export default function EditVideoPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useSimpleAuth(true); // Require admin
   const [saving, setSaving] = useState(false);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -35,27 +34,11 @@ export default function EditVideoPage({ params }: { params: { id: string } }) {
   });
 
   useEffect(() => {
-    if (status === 'loading') {
-      setLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user && session.user.role !== 'admin') {
-      toast.error('管理者権限が必要です');
-      router.push('/');
-      return;
-    }
-
-    if (session?.user) {
+    if (user) {
       fetchInstructors();
       fetchVideo();
     }
-  }, [session, status, router]);
+  }, [user]);
 
 
   const fetchInstructors = async () => {

@@ -124,47 +124,51 @@ export default function Navigation() {
               {status === 'loading' ? (
                 <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
               ) : session?.user ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Link
                     href="/mypage"
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-xl transition-all"
+                    title="マイページ"
                   >
                     <FaUser />
-                    <span className="text-sm font-medium">マイページ</span>
+                    <span className="hidden xl:block text-sm font-medium">マイページ</span>
                   </Link>
                   {session.user.role === 'admin' && (
                     <Link
                       href="/admin"
-                      className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white hover:bg-orange-600 rounded-xl transition-all"
+                      className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-orange-500 text-white hover:bg-orange-600 rounded-xl transition-all"
+                      title="管理"
                     >
                       <FaCog />
-                      <span className="text-sm font-medium">管理</span>
+                      <span className="hidden xl:block text-sm font-medium">管理</span>
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all"
                     title="ログアウト"
                   >
                     <FaSignOutAlt />
-                    <span className="text-sm">ログアウト</span>
+                    <span className="hidden xl:block text-sm">ログアウト</span>
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Link
                     href="/auth/login"
-                    className="flex items-center gap-2 px-3 py-2 text-theme-800 hover:bg-theme-50 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-2 sm:px-3 py-2 text-theme-800 hover:bg-theme-50 rounded-xl transition-all"
+                    title="ログイン"
                   >
                     <FaSignInAlt />
-                    <span className="hidden sm:block text-sm">ログイン</span>
+                    <span className="hidden xl:block text-sm">ログイン</span>
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="flex items-center gap-2 px-3 py-2 bg-theme-800 text-white hover:bg-theme-700 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-theme-800 text-white hover:bg-theme-700 rounded-xl transition-all"
+                    title="登録"
                   >
                     <FaUser />
-                    <span className="hidden sm:block text-sm">登録</span>
+                    <span className="hidden xl:block text-sm">登録</span>
                   </Link>
                 </div>
               )}

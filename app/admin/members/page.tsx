@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaUsers, FaEdit, FaEye, FaSearch, FaFilter, FaDownload, FaUserShield, FaUserCog } from 'react-icons/fa';
@@ -9,15 +10,29 @@ import toast from 'react-hot-toast';
 
 export default function MembersPage() {
   const { user, loading: authLoading } = useSimpleAuth(true);
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get('role');
+  
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
-  const [filterRole, setFilterRole] = useState<'all' | 'user' | 'admin'>('all');
+  const [filterRole, setFilterRole] = useState<'all' | 'user' | 'admin'>(
+    roleParam === 'admin' ? 'admin' : roleParam === 'user' ? 'user' : 'all'
+  );
 
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  // Update filter when URL params change
+  useEffect(() => {
+    if (roleParam === 'admin') {
+      setFilterRole('admin');
+    } else if (roleParam === 'user') {
+      setFilterRole('user');
+    }
+  }, [roleParam]);
 
   const fetchMembers = async () => {
     setLoading(true);
@@ -101,11 +116,13 @@ export default function MembersPage() {
 
   const sortedMembers = filteredMembers.sort((a, b) => b.completionRate - a.completionRate);
 
+  // Statistics based on current filter
+  const statsMembers = roleParam === 'admin' ? members.filter(m => m.role === 'admin') : members;
   const stats = {
-    totalMembers: members.length,
-    activeMembers: members.filter(m => m.status === 'active').length,
-    averageCompletion: members.length > 0 ? Math.round(members.reduce((sum, m) => sum + m.completionRate, 0) / members.length) : 0,
-    totalWatchTime: members.reduce((sum, m) => sum + m.totalWatchTime, 0)
+    totalMembers: statsMembers.length,
+    activeMembers: statsMembers.filter(m => m.status === 'active').length,
+    averageCompletion: statsMembers.length > 0 ? Math.round(statsMembers.reduce((sum, m) => sum + m.completionRate, 0) / statsMembers.length) : 0,
+    totalWatchTime: statsMembers.reduce((sum, m) => sum + m.totalWatchTime, 0)
   };
 
   if (authLoading || loading) {
@@ -125,16 +142,25 @@ export default function MembersPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">会員一覧</h1>
-        <p className="text-gray-600">コミュニティメンバーの学習状況を管理できます</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {roleParam === 'admin' ? '管理者一覧' : '会員一覧'}
+        </h1>
+        <p className="text-gray-600">
+          {roleParam === 'admin' 
+            ? '管理者ユーザーの権限と状況を管理できます' 
+            : 'コミュニティメンバーの学習状況を管理できます'
+          }
+        </p>
       </div>
 
       {/* 統計カード */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="rounded-2xl p-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <div className="flex items-center justify-between mb-2">
-            <FaUsers className="text-2xl" />
-            <span className="text-blue-100 text-sm">総会員数</span>
+            {roleParam === 'admin' ? <FaUserShield className="text-2xl" /> : <FaUsers className="text-2xl" />}
+            <span className="text-blue-100 text-sm">
+              {roleParam === 'admin' ? '総管理者数' : '総会員数'}
+            </span>
           </div>
           <h3 className="text-3xl font-bold">{stats.totalMembers}</h3>
           <p className="text-blue-100 text-sm">人</p>
@@ -219,9 +245,16 @@ export default function MembersPage() {
       {sortedMembers.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <div className="text-center">
-            <FaUsers className="text-5xl text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">まだメンバーがいません</h3>
-            <p className="text-gray-500">新規ユーザーが登録すると、ここに表示されます。</p>
+            {roleParam === 'admin' ? <FaUserShield className="text-5xl text-gray-300 mx-auto mb-4" /> : <FaUsers className="text-5xl text-gray-300 mx-auto mb-4" />}
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {roleParam === 'admin' ? 'まだ管理者がいません' : 'まだメンバーがいません'}
+            </h3>
+            <p className="text-gray-500">
+              {roleParam === 'admin' 
+                ? '既存ユーザーに管理者権限を付与すると、ここに表示されます。'
+                : '新規ユーザーが登録すると、ここに表示されます。'
+              }
+            </p>
           </div>
         </div>
       ) : (

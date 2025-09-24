@@ -2,15 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import Link from 'next/link';
 import { FaSave, FaArrowLeft } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 export default function NewInstructorPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useSimpleAuth(true); // Require admin
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,28 +19,6 @@ export default function NewInstructorPage() {
     expertise: [] as string[]
   });
   const [expertiseInput, setExpertiseInput] = useState('');
-
-  useEffect(() => {
-    if (status === 'loading') {
-      setLoading(true);
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user && session.user.role !== 'admin') {
-      toast.error('管理者権限が必要です');
-      router.push('/');
-      return;
-    }
-
-    if (session?.user) {
-      setLoading(false);
-    }
-  }, [session, status, router]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,19 +39,20 @@ export default function NewInstructorPage() {
         credentials: 'include',
         body: JSON.stringify({
           ...formData,
-          expertise: expertiseArray
+          tags: expertiseArray  // API expects 'tags' not 'expertise'
         }),
       });
 
       if (!response.ok) {
-        throw new Error('追加に失敗しました');
+        const errorData = await response.json();
+        throw new Error(errorData.error || '追加に失敗しました');
       }
 
       toast.success('講師を追加しました');
       router.push('/admin/instructors');
     } catch (error) {
       console.error('Error creating instructor:', error);
-      toast.error('追加に失敗しました');
+      toast.error(error.message || '追加に失敗しました');
     } finally {
       setSaving(false);
     }
