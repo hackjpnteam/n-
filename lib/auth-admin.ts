@@ -62,7 +62,7 @@ export async function verifyAdminAuth(request?: NextRequest): Promise<AdminAuthR
             const secret = process.env.NEXTAUTH_SECRET;
             if (!secret) {
               console.log('❌ [AUTH-ADMIN] NEXTAUTH_SECRET not found');
-              return;
+              throw new Error('NEXTAUTH_SECRET not configured');
             }
             
             // Try to verify the JWT token
