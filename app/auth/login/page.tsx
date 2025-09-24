@@ -81,12 +81,12 @@ export default function LoginPage() {
       setIsLoading(true);
       const result = await signIn("google", { 
         callbackUrl: "/mypage",
-        redirect: true 
+        redirect: false 
       });
       
-      if (result?.error) {
+      if (result && 'error' in result && result.error) {
         toast.error('Googleログインでエラーが発生しました: ' + result.error);
-      } else if (result?.ok || result?.url) {
+      } else if (result && ('ok' in result || 'url' in result)) {
         toast.success('Googleログインしました');
         // Force session refresh
         await getSession();
