@@ -35,6 +35,7 @@ function MembersContent() {
   }, [roleParam]);
 
   const fetchMembers = async () => {
+    console.log('🔄 [FETCH-MEMBERS] Starting fetchMembers...');
     setLoading(true);
     try {
       // Try to fetch actual user data first
@@ -42,37 +43,45 @@ function MembersContent() {
         credentials: 'include'
       });
       
-      console.log('API Response Status:', response.status);
+      console.log('📡 [FETCH-MEMBERS] API Response Status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('API Response:', data);
-        console.log('Members data:', data.members);
+        console.log('📊 [FETCH-MEMBERS] API Response data:', data);
+        console.log('👥 [FETCH-MEMBERS] Members count:', data.members?.length || 0);
         
-        // Debug each member's avatar URL
-        data.members?.forEach((member: any, index: number) => {
-          console.log(`Member ${index} (${member.name}):`, {
-            id: member.id,
-            avatarUrl: member.profile?.avatarUrl,
-            hasProfile: !!member.profile,
-            hasAvatarUrl: !!member.profile?.avatarUrl
+        // Debug role distribution
+        if (data.members) {
+          const adminCount = data.members.filter((m: any) => m.role === 'admin').length;
+          const userCount = data.members.filter((m: any) => m.role === 'user' || !m.role).length;
+          console.log('🔐 [FETCH-MEMBERS] Role distribution:', { adminCount, userCount });
+          
+          data.members.forEach((member: any, index: number) => {
+            console.log(`👤 [FETCH-MEMBERS] Member ${index}:`, {
+              id: member.id,
+              name: member.name,
+              email: member.email,
+              role: member.role || 'user'
+            });
           });
-        });
+        }
         
         setMembers(data.members || []);
+        console.log('✅ [FETCH-MEMBERS] Members state updated');
       } else {
         const errorData = await response.text();
-        console.log('API request failed:', response.status, errorData);
+        console.error('❌ [FETCH-MEMBERS] API request failed:', response.status, errorData);
         
         // Don't use mock data anymore - just show empty state
         setMembers([]);
       }
     } catch (error) {
-      console.error('Error fetching members:', error);
+      console.error('❌ [FETCH-MEMBERS] Error fetching members:', error);
       // Set empty array on error
       setMembers([]);
     } finally {
       setLoading(false);
+      console.log('🏁 [FETCH-MEMBERS] Completed');
     }
   };
 
@@ -82,6 +91,8 @@ function MembersContent() {
     }
 
     try {
+      console.log(`🔄 [ROLE-CHANGE] Changing role for ${memberName} (${memberId}) to ${newRole}`);
+      
       const response = await fetch(`/api/admin/members/${memberId}/role`, {
         method: 'PATCH',
         headers: {
@@ -91,12 +102,34 @@ function MembersContent() {
         body: JSON.stringify({ role: newRole }),
       });
 
+      console.log(`📡 [ROLE-CHANGE] Response status:`, response.status);
+
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error(`❌ [ROLE-CHANGE] Error response:`, errorData);
         throw new Error('権限変更に失敗しました');
       }
 
+      const result = await response.json();
+      console.log(`✅ [ROLE-CHANGE] Success:`, result);
+
+      // Update local state immediately for instant UI feedback
+      setMembers(prevMembers => 
+        prevMembers.map(member => 
+          member.id === memberId 
+            ? { ...member, role: newRole }
+            : member
+        )
+      );
+
       toast.success(`${memberName}の権限を変更しました`);
-      fetchMembers();
+      
+      // Also refetch to ensure data consistency
+      setTimeout(() => {
+        console.log(`🔄 [ROLE-CHANGE] Refetching members after role change`);
+        fetchMembers();
+      }, 500);
+      
     } catch (error) {
       console.error('Error changing role:', error);
       toast.error('権限変更に失敗しました');
