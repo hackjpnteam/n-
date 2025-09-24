@@ -11,7 +11,7 @@ export async function requireAuth(request: NextRequest) {
     );
   }
 
-  const user = getUserFromSession(token);
+  const user = await getUserFromSession(token);
   if (!user) {
     return NextResponse.json(
       { error: 'Invalid session' },

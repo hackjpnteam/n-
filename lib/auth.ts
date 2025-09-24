@@ -165,12 +165,19 @@ export async function createUserAsync(email: string, name: string, password: str
       profile: mongoUser.profile
     };
   } catch (error) {
-    console.log('📂 MongoDB save failed, falling back to file system');
+    console.log('📂 MongoDB save failed');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📂 Falling back to file system in development');
+      // Fallback to file system (development only)
+      users.set(user.id, user);
+      saveUsers(users);
+      return user;
+    } else {
+      // In production, don't fall back to file system
+      throw error;
+    }
   }
 
-  // Fallback to file system (development)
-  users.set(user.id, user);
-  saveUsers(users);
   return user;
 }
 
@@ -221,7 +228,12 @@ export function getUserById(id: string): User | null {
 export function createSession(userId: string): string {
   const token = generateToken();
   sessions.set(token, userId);
-  saveSessions(sessions);
+  
+  // Only save to file system in development
+  if (process.env.NODE_ENV === 'development') {
+    saveSessions(sessions);
+  }
+  
   return token;
 }
 
@@ -273,20 +285,79 @@ export function getUserFromSessionSync(token: string): User | null {
 
 export function deleteSession(token: string): void {
   sessions.delete(token);
-  saveSessions(sessions);
+  
+  // Only save to file system in development
+  if (process.env.NODE_ENV === 'development') {
+    saveSessions(sessions);
+  }
 }
 
-export function updateUserProfile(userId: string, profileData: {
+export async function updateUserProfile(userId: string, profileData: {
   name?: string;
   company?: string;
   position?: string;
   companyUrl?: string;
   bio?: string;
   avatarUrl?: string;
-}): User | null {
+}): Promise<User | null> {
   console.log('🔍 updateUserProfile called for userId:', userId);
   console.log('🔍 Profile data to update:', profileData);
   
+  // Try MongoDB first (production)
+  try {
+    await connectDB();
+    const updateData: any = {};
+    
+    // Update name if provided
+    if (profileData.name !== undefined) {
+      updateData.name = profileData.name;
+    }
+    
+    // Update profile fields
+    if (profileData.company !== undefined) {
+      updateData['profile.company'] = profileData.company;
+    }
+    if (profileData.position !== undefined) {
+      updateData['profile.position'] = profileData.position;
+    }
+    if (profileData.companyUrl !== undefined) {
+      updateData['profile.companyUrl'] = profileData.companyUrl;
+    }
+    if (profileData.bio !== undefined) {
+      updateData['profile.bio'] = profileData.bio;
+    }
+    if (profileData.avatarUrl !== undefined && profileData.avatarUrl !== '') {
+      updateData['profile.avatarUrl'] = profileData.avatarUrl;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true, lean: true }
+    );
+    
+    if (updatedUser) {
+      console.log('✅ User profile updated in MongoDB');
+      return {
+        id: updatedUser._id.toString(),
+        email: updatedUser.email,
+        name: updatedUser.name,
+        passwordHash: updatedUser.passwordHash,
+        role: updatedUser.role,
+        createdAt: updatedUser.createdAt || new Date(),
+        profile: updatedUser.profile
+      };
+    }
+  } catch (error) {
+    console.log('📂 MongoDB updateUserProfile failed, trying file system fallback');
+  }
+
+  // Fallback to file system (development only)
+  if (process.env.NODE_ENV !== 'development') {
+    console.error('❌ User profile update failed in production');
+    return null;
+  }
+
   const user = getUserById(userId);
   if (!user) {
     console.error('❌ User not found:', userId);
@@ -334,18 +405,20 @@ export function updateUserProfile(userId: string, profileData: {
 
   console.log('💾 Final user profile before saving:', user.profile);
 
-  // Update in storage
-  users.set(userId, user);
-  saveUsers(users);
-  
-  // Verify the data was saved correctly by re-reading from file
-  const verificationUsers = loadUsers();
-  const verifiedUser = verificationUsers.get(userId);
-  if (verifiedUser) {
-    console.log('🔍 Verification: Data saved successfully to file');
-    console.log('🔍 Verified profile from file:', verifiedUser.profile);
-  } else {
-    console.error('❌ Verification failed: User not found in saved file');
+  // Update in storage (development only)
+  if (process.env.NODE_ENV === 'development') {
+    users.set(userId, user);
+    saveUsers(users);
+    
+    // Verify the data was saved correctly by re-reading from file
+    const verificationUsers = loadUsers();
+    const verifiedUser = verificationUsers.get(userId);
+    if (verifiedUser) {
+      console.log('🔍 Verification: Data saved successfully to file');
+      console.log('🔍 Verified profile from file:', verifiedUser.profile);
+    } else {
+      console.error('❌ Verification failed: User not found in saved file');
+    }
   }
   
   console.log('✅ User profile updated successfully');

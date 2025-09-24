@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromSession } from '@/lib/auth';
+import { verifyAdminAuthSimple } from '@/lib/auth-admin-simple';
 
 // Mock progress storage
 const progressData: Map<string, { userId: string; videoId: string; status: string; watchedAt: Date }> = new Map();
@@ -8,21 +8,21 @@ const progressData: Map<string, { userId: string; videoId: string; status: strin
 export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
-    const user = token ? await getUserFromSession(token) : null;
-    
-    if (!user) {
+    const authResult = await verifyAdminAuthSimple(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 401 }
       );
     }
+    
+    const user = authResult.user;
 
     const videoId = request.nextUrl.searchParams.get('videoId');
     
     if (videoId) {
       // Get specific video progress
-      const progressKey = `${user.id}-${videoId}`;
+      const progressKey = `${user._id}-${videoId}`;
       const progress = progressData.get(progressKey);
       
       return NextResponse.json({
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Get all user progress
       const userProgress = Array.from(progressData.values())
-        .filter(p => p.userId === user.id);
+        .filter(p => p.userId === user._id);
       
       return NextResponse.json({
         progress: userProgress
@@ -50,15 +50,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
-    const user = token ? await getUserFromSession(token) : null;
-    
-    if (!user) {
+    const authResult = await verifyAdminAuthSimple(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 401 }
       );
     }
+    
+    const user = authResult.user;
 
     const body = await request.json();
     const { videoId, status } = body;
@@ -70,9 +70,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const progressKey = `${user.id}-${videoId}`;
+    const progressKey = `${user._id}-${videoId}`;
     progressData.set(progressKey, {
-      userId: user.id,
+      userId: user._id,
       videoId,
       status,
       watchedAt: new Date()

@@ -10,19 +10,18 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // For now, return mock data (implement actual video storage later)
-    const mockVideo = {
-      _id: params.id,
-      title: 'Sample Video',
-      description: 'Sample Description',
-      sourceUrl: 'https://example.com/video.mp4',
-      instructor: {
-        _id: '1',
-        name: 'Sample Instructor'
-      }
-    };
+    await connectToMongoDB();
     
-    return NextResponse.json(mockVideo);
+    const video = await Video.findById(params.id).populate('instructor', 'name');
+    
+    if (!video) {
+      return NextResponse.json(
+        { error: 'Video not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(video);
   } catch (error) {
     console.error('Error fetching video:', error);
     return NextResponse.json(
@@ -50,13 +49,25 @@ export async function PUT(
 
     const updates = await request.json();
     
-    // For now, return mock updated data (implement actual video storage later)
-    const updatedVideo = {
-      _id: params.id,
-      ...updates,
-      updatedAt: new Date(),
-      updatedBy: currentUser._id
-    };
+    await connectToMongoDB();
+    
+    // Update video in MongoDB
+    const updatedVideo = await Video.findByIdAndUpdate(
+      params.id,
+      { 
+        ...updates, 
+        updatedAt: new Date(),
+        updatedBy: currentUser._id
+      },
+      { new: true }
+    ).populate('instructor', 'name');
+    
+    if (!updatedVideo) {
+      return NextResponse.json(
+        { error: 'Video not found' },
+        { status: 404 }
+      );
+    }
     
     return NextResponse.json({
       message: '動画情報を更新しました',
@@ -87,6 +98,9 @@ export async function DELETE(
     
     const currentUser = authResult.user;
 
+    // Connect to MongoDB
+    await connectToMongoDB();
+    
     // Delete video from MongoDB
     const deletedVideo = await Video.findByIdAndDelete(params.id);
     
