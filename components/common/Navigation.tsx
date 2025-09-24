@@ -127,28 +127,28 @@ export default function Navigation() {
                 <div className="flex items-center gap-1 sm:gap-2">
                   <Link
                     href="/mypage"
-                    className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-xl transition-all"
+                    className="flex items-center justify-center w-10 h-10 xl:w-auto xl:h-auto xl:gap-2 xl:px-3 xl:py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-xl transition-all"
                     title="マイページ"
                   >
-                    <FaUser />
+                    <FaUser className="text-lg xl:text-base" />
                     <span className="hidden xl:block text-sm font-medium">マイページ</span>
                   </Link>
                   {session.user.role === 'admin' && (
                     <Link
                       href="/admin"
-                      className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-orange-500 text-white hover:bg-orange-600 rounded-xl transition-all"
+                      className="flex items-center justify-center w-10 h-10 xl:w-auto xl:h-auto xl:gap-2 xl:px-3 xl:py-2 bg-orange-500 text-white hover:bg-orange-600 rounded-xl transition-all"
                       title="管理"
                     >
-                      <FaCog />
+                      <FaCog className="text-lg xl:text-base" />
                       <span className="hidden xl:block text-sm font-medium">管理</span>
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all"
+                    className="flex items-center justify-center w-10 h-10 xl:w-auto xl:h-auto xl:gap-2 xl:px-3 xl:py-2 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all"
                     title="ログアウト"
                   >
-                    <FaSignOutAlt />
+                    <FaSignOutAlt className="text-lg xl:text-base" />
                     <span className="hidden xl:block text-sm">ログアウト</span>
                   </button>
                 </div>
@@ -156,18 +156,18 @@ export default function Navigation() {
                 <div className="flex items-center gap-1 sm:gap-2">
                   <Link
                     href="/auth/login"
-                    className="flex items-center gap-2 px-2 sm:px-3 py-2 text-theme-800 hover:bg-theme-50 rounded-xl transition-all"
+                    className="flex items-center justify-center w-10 h-10 xl:w-auto xl:h-auto xl:gap-2 xl:px-3 xl:py-2 text-theme-800 hover:bg-theme-50 rounded-xl transition-all"
                     title="ログイン"
                   >
-                    <FaSignInAlt />
+                    <FaSignInAlt className="text-lg xl:text-base" />
                     <span className="hidden xl:block text-sm">ログイン</span>
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-theme-800 text-white hover:bg-theme-700 rounded-xl transition-all"
+                    className="flex items-center justify-center w-10 h-10 xl:w-auto xl:h-auto xl:gap-2 xl:px-3 xl:py-2 bg-theme-800 text-white hover:bg-theme-700 rounded-xl transition-all"
                     title="登録"
                   >
-                    <FaUser />
+                    <FaUser className="text-lg xl:text-base" />
                     <span className="hidden xl:block text-sm">登録</span>
                   </Link>
                 </div>

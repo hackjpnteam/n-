@@ -66,8 +66,6 @@ export default function EditVideoPage({ params }: { params: { id: string } }) {
       console.error('Error fetching video:', error);
       toast.error('動画データの取得に失敗しました');
       router.push('/admin/videos');
-    } finally {
-      setLoading(false);
     }
   };
 

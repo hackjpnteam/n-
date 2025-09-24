@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,7 +8,7 @@ import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine,
 import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import toast from 'react-hot-toast';
 
-export default function MembersPage() {
+function MembersContent() {
   const { user, loading: authLoading } = useSimpleAuth(true);
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role');
@@ -462,5 +462,19 @@ export default function MembersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MembersPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <MembersContent />
+    </Suspense>
   );
 }

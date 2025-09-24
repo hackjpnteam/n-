@@ -52,7 +52,7 @@ export default function NewInstructorPage() {
       router.push('/admin/instructors');
     } catch (error) {
       console.error('Error creating instructor:', error);
-      toast.error(error.message || '追加に失敗しました');
+      toast.error(error instanceof Error ? error.message : '追加に失敗しました');
     } finally {
       setSaving(false);
     }

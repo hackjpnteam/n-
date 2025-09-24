@@ -85,7 +85,7 @@ export default function NewVideoPage() {
       router.push('/admin/videos');
     } catch (error) {
       console.error('Error creating video:', error);
-      toast.error(error.message || '追加に失敗しました');
+      toast.error(error instanceof Error ? error.message : '追加に失敗しました');
     } finally {
       setSaving(false);
     }
