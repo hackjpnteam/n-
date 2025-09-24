@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaGoogle, FaEye, FaEyeSlash, FaSignInAlt } from "react-icons/fa";
+import { signIn, getSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
