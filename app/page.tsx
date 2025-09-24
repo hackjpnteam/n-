@@ -20,13 +20,8 @@ export default function Home() {
           </div>
           
           <div className="max-w-4xl mx-auto mb-8">
-            <p className="text-2xl text-gray-700 leading-relaxed mb-4">
-              5年以内の<br className="hidden md:block" />
-              IPOを目指す<br className="hidden md:block" />
-              経営者コミュニティ
-            </p>
             <p className="text-xl text-theme-700 font-medium">
-              共に駆け上がる、IPOへの最短距離
+              共に駆け上がる、最高のパフォーマンスへ
             </p>
           </div>
           
@@ -106,41 +101,6 @@ export default function Home() {
               </div>
             </div>
           </Link>
-        </div>
-        
-        {/* Features section */}
-        <div className="mt-24 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12">プラットフォームの特徴</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-theme-500 to-theme-600 rounded-2xl flex items-center justify-center text-2xl text-white">
-                🎯
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">個別進捗管理</h3>
-              <p className="text-sm text-gray-600">動画ごとの視聴状況を詳細に記録</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-theme-500 to-theme-600 rounded-2xl flex items-center justify-center text-2xl text-white">
-                🧠
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">理解度テスト</h3>
-              <p className="text-sm text-gray-600">学習内容の理解度を客観的に測定</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-theme-500 to-theme-600 rounded-2xl flex items-center justify-center text-2xl text-white">
-                👨‍🎓
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">専門講師陣</h3>
-              <p className="text-sm text-gray-600">各分野のエキスパートによる指導</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-theme-500 to-theme-600 rounded-2xl flex items-center justify-center text-2xl text-white">
-                📊
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">詳細分析</h3>
-              <p className="text-sm text-gray-600">学習データの可視化と洞察</p>
-            </div>
-          </div>
         </div>
       </div>
     </main>
