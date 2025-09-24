@@ -25,49 +25,54 @@ export async function verifyAdminAuth(request?: NextRequest): Promise<AdminAuthR
       hasMongoUri: !!process.env.MONGODB_URI
     });
     
-    // Try NextAuth first
-    try {
-      const session = await auth();
-      console.log('🔍 [AUTH-ADMIN] NextAuth session result:', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        hasEmail: !!session?.user?.email,
-        email: session?.user?.email
-      });
-      
-      if (session?.user?.email) {
-        userEmail = session.user.email;
-        console.log('✅ [AUTH-ADMIN] NextAuth session found:', userEmail);
+    // In production, prioritize cookie-based auth over NextAuth
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (!isProduction) {
+      // Development: Try NextAuth first
+      try {
+        const session = await auth();
+        console.log('🔍 [AUTH-ADMIN] NextAuth session result:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          hasEmail: !!session?.user?.email,
+          email: session?.user?.email
+        });
+        
+        if (session?.user?.email) {
+          userEmail = session.user.email;
+          console.log('✅ [AUTH-ADMIN] NextAuth session found:', userEmail);
+        }
+      } catch (authError) {
+        console.log('❌ [AUTH-ADMIN] NextAuth failed:', authError);
       }
-    } catch (authError) {
-      console.log('❌ [AUTH-ADMIN] NextAuth failed:', authError);
+    } else {
+      console.log('🔍 [AUTH-ADMIN] Production mode: Skipping NextAuth for cookie-based auth');
     }
     
-    // If NextAuth fails, try simple auth by directly checking cookies
+    // If NextAuth fails, try cookie-based auth (including NextAuth cookies)
     if (!userEmail) {
       try {
-        console.log('🔍 [AUTH-ADMIN] Trying simple auth...');
+        console.log('🔍 [AUTH-ADMIN] Trying cookie-based auth...');
         const cookieStore = cookies();
         const allCookies = cookieStore.getAll();
         console.log('🔍 [AUTH-ADMIN] Available cookies:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
         
-        const sessionToken = cookieStore.get('simple-auth-token')?.value;
+        // Try NextAuth session token first (for production)
+        let sessionToken = cookieStore.get('__Secure-next-auth.session-token')?.value || 
+                          cookieStore.get('next-auth.session-token')?.value;
         
         if (sessionToken) {
-          console.log('🔍 [AUTH-ADMIN] Found simple auth token, verifying...');
-          
-          // Parse JWT token to get user info with proper verification
+          console.log('🔍 [AUTH-ADMIN] Found NextAuth session token, verifying...');
           try {
-            console.log('🔍 [AUTH-ADMIN] Verifying JWT token...');
             const secret = process.env.NEXTAUTH_SECRET;
             if (!secret) {
               console.log('❌ [AUTH-ADMIN] NEXTAUTH_SECRET not found');
               throw new Error('NEXTAUTH_SECRET not configured');
             }
             
-            // Try to verify the JWT token
             const decoded = jwt.verify(sessionToken, secret) as any;
-            console.log('🔍 [AUTH-ADMIN] JWT decoded:', { 
+            console.log('🔍 [AUTH-ADMIN] NextAuth JWT decoded:', { 
               hasEmail: !!decoded.email, 
               email: decoded.email,
               exp: decoded.exp,
@@ -76,41 +81,75 @@ export async function verifyAdminAuth(request?: NextRequest): Promise<AdminAuthR
             
             if (decoded.email) {
               userEmail = decoded.email;
-              console.log('✅ [AUTH-ADMIN] JWT token verified successfully:', userEmail);
-            } else {
-              console.log('❌ [AUTH-ADMIN] JWT token missing email');
+              console.log('✅ [AUTH-ADMIN] NextAuth JWT verified successfully:', userEmail);
             }
           } catch (jwtError) {
-            console.log('❌ [AUTH-ADMIN] JWT verification failed:', jwtError);
-            
-            // Fallback: try basic JWT parsing without verification
-            try {
-              const tokenParts = sessionToken.split('.');
-              console.log('🔍 [AUTH-ADMIN] Fallback: Token parts count:', tokenParts.length);
-              
-              if (tokenParts.length === 3) {
-                const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
-                console.log('🔍 [AUTH-ADMIN] Fallback payload:', { 
-                  hasEmail: !!payload.email, 
-                  email: payload.email,
-                  exp: payload.exp,
-                  currentTime: Date.now() / 1000,
-                  isExpired: payload.exp <= Date.now() / 1000
-                });
-                
-                if (payload.email && payload.exp > Date.now() / 1000) {
-                  userEmail = payload.email;
-                  console.log('✅ [AUTH-ADMIN] Fallback token parsing successful:', userEmail);
-                } else {
-                  console.log('❌ [AUTH-ADMIN] Fallback token expired or invalid');
-                }
-              }
-            } catch (fallbackError) {
-              console.log('❌ [AUTH-ADMIN] Fallback parsing failed:', fallbackError);
-            }
+            console.log('❌ [AUTH-ADMIN] NextAuth JWT verification failed:', jwtError);
           }
-        } else {
-          console.log('❌ [AUTH-ADMIN] No simple auth token found');
+        }
+        
+        // Fallback to simple auth token
+        if (!userEmail) {
+          sessionToken = cookieStore.get('simple-auth-token')?.value;
+          if (sessionToken) {
+            console.log('🔍 [AUTH-ADMIN] Found simple auth token, verifying...');
+            
+            // Parse JWT token to get user info with proper verification
+            try {
+              console.log('🔍 [AUTH-ADMIN] Verifying simple auth JWT token...');
+              const secret = process.env.NEXTAUTH_SECRET;
+              if (!secret) {
+                console.log('❌ [AUTH-ADMIN] NEXTAUTH_SECRET not found');
+                throw new Error('NEXTAUTH_SECRET not configured');
+              }
+              
+              // Try to verify the JWT token
+              const decoded = jwt.verify(sessionToken, secret) as any;
+              console.log('🔍 [AUTH-ADMIN] Simple auth JWT decoded:', { 
+                hasEmail: !!decoded.email, 
+                email: decoded.email,
+                exp: decoded.exp,
+                currentTime: Date.now() / 1000
+              });
+              
+              if (decoded.email) {
+                userEmail = decoded.email;
+                console.log('✅ [AUTH-ADMIN] Simple auth JWT verified successfully:', userEmail);
+              } else {
+                console.log('❌ [AUTH-ADMIN] Simple auth JWT token missing email');
+              }
+            } catch (jwtError) {
+              console.log('❌ [AUTH-ADMIN] Simple auth JWT verification failed:', jwtError);
+              
+              // Fallback: try basic JWT parsing without verification
+              try {
+                const tokenParts = sessionToken.split('.');
+                console.log('🔍 [AUTH-ADMIN] Fallback: Token parts count:', tokenParts.length);
+                
+                if (tokenParts.length === 3) {
+                  const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
+                  console.log('🔍 [AUTH-ADMIN] Fallback payload:', { 
+                    hasEmail: !!payload.email, 
+                    email: payload.email,
+                    exp: payload.exp,
+                    currentTime: Date.now() / 1000,
+                    isExpired: payload.exp <= Date.now() / 1000
+                  });
+                  
+                  if (payload.email && payload.exp > Date.now() / 1000) {
+                    userEmail = payload.email;
+                    console.log('✅ [AUTH-ADMIN] Fallback token parsing successful:', userEmail);
+                  } else {
+                    console.log('❌ [AUTH-ADMIN] Fallback token expired or invalid');
+                  }
+                }
+              } catch (fallbackError) {
+                console.log('❌ [AUTH-ADMIN] Fallback parsing failed:', fallbackError);
+              }
+            }
+          } else {
+            console.log('❌ [AUTH-ADMIN] No auth tokens found');
+          }
         }
       } catch (simpleAuthError) {
         console.log('❌ [AUTH-ADMIN] Simple auth error:', simpleAuthError);
