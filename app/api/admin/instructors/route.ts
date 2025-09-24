@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongoDB from '@/lib/mongodb';
-import { verifyAdminAuth } from '@/lib/auth-admin';
+import { verifyAdminAuthSimple } from '@/lib/auth-admin-simple';
 import Instructor from '@/models/Instructor';
 
 export const dynamic = 'force-dynamic';
@@ -8,8 +8,11 @@ export const dynamic = 'force-dynamic';
 // Simple instructor storage in MongoDB
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 [INSTRUCTOR-POST] Starting instructor creation...');
+    
     // Check admin authentication
-    const authResult = await verifyAdminAuth(request);
+    const authResult = await verifyAdminAuthSimple(request);
+    console.log('🔍 [INSTRUCTOR-POST] Auth result:', { success: authResult.success, error: authResult.error });
     if (!authResult.success) {
       return NextResponse.json(
         { error: authResult.error || 'Authentication failed' },
@@ -18,9 +21,15 @@ export async function POST(request: NextRequest) {
     }
     
     const currentUser = authResult.user;
+    console.log('👤 [INSTRUCTOR-POST] Current user:', { id: currentUser._id, email: currentUser.email });
 
     const instructorData = await request.json();
-    console.log('Instructor data received:', instructorData);
+    console.log('📝 [INSTRUCTOR-POST] Instructor data received:', instructorData);
+    
+    // Connect to MongoDB
+    console.log('🔌 [INSTRUCTOR-POST] Connecting to MongoDB...');
+    await connectToMongoDB();
+    console.log('✅ [INSTRUCTOR-POST] MongoDB connected');
     
     // Create new instructor in MongoDB
     const instructor = new Instructor({
@@ -32,8 +41,9 @@ export async function POST(request: NextRequest) {
       createdBy: currentUser._id.toString()
     });
     
+    console.log('💾 [INSTRUCTOR-POST] Saving instructor to MongoDB...');
     const savedInstructor = await instructor.save() as any;
-    console.log('✅ Instructor saved to MongoDB:', savedInstructor._id);
+    console.log('✅ [INSTRUCTOR-POST] Instructor saved to MongoDB:', savedInstructor._id);
     
     return NextResponse.json({
       message: 'ゲストを追加しました',

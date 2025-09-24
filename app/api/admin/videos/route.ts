@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongoDB from '@/lib/mongodb';
-import { verifyAdminAuth } from '@/lib/auth-admin';
+import { verifyAdminAuthSimple } from '@/lib/auth-admin-simple';
 import Video from '@/models/Video';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Check admin authentication
-    const authResult = await verifyAdminAuth(request);
+    const authResult = await verifyAdminAuthSimple(request);
     if (!authResult.success) {
       return NextResponse.json(
         { error: authResult.error || 'Authentication failed' },

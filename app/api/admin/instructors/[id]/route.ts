@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongoDB from '@/lib/mongodb';
-import { verifyAdminAuth } from '@/lib/auth-admin';
+import { verifyAdminAuthSimple } from '@/lib/auth-admin-simple';
 import Instructor from '@/models/Instructor';
 
 
@@ -52,7 +52,7 @@ export async function PUT(
 ) {
   try {
     // Check admin authentication
-    const authResult = await verifyAdminAuth(request);
+    const authResult = await verifyAdminAuthSimple(request);
     if (!authResult.success) {
       return NextResponse.json(
         { error: authResult.error || 'Authentication failed' },
@@ -126,7 +126,7 @@ export async function DELETE(
 ) {
   try {
     // Check admin authentication
-    const authResult = await verifyAdminAuth(request);
+    const authResult = await verifyAdminAuthSimple(request);
     if (!authResult.success) {
       return NextResponse.json(
         { error: authResult.error || 'Authentication failed' },
