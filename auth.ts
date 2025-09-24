@@ -109,8 +109,7 @@ export const authConfig: NextAuthConfig = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // Explicitly set domain for Vercel
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        // Remove domain restriction for Vercel - let browser handle it
       },
     },
     callbackUrl: {
@@ -122,7 +121,7 @@ export const authConfig: NextAuthConfig = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        // Remove domain restriction
       },
     },
     csrfToken: {
