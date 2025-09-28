@@ -17,6 +17,7 @@ export default function VideoPage() {
   const [loading, setLoading] = useState(true);
   const [watchedPercentage, setWatchedPercentage] = useState(0);
   const [hasQuiz, setHasQuiz] = useState(false);
+  const [vimeoEmbedFailed, setVimeoEmbedFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // YouTube URLからvideo IDを取得する関数
@@ -209,45 +210,63 @@ export default function VideoPage() {
                 
                 console.log('Using Vimeo embed URL:', embedUrl);
                 
-                // For now, show direct link for all Vimeo videos to avoid 403 errors
-                // Many Vimeo videos have embedding restrictions by default
-                return (
-                  <div className="w-full h-full bg-black rounded-2xl overflow-hidden relative">
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      <div className="text-center p-8">
-                        <div className="mb-6">
-                          <svg className="w-20 h-20 mx-auto mb-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.9 12.9c-.2-1.4-.4-2.9-.8-4.3-.3-1.4-.8-2.7-1.5-3.9-.7-1.2-1.6-2.3-2.8-3.1C17.6.8 16.2.3 14.7.1c-1.5-.2-3-.2-4.5 0C8.7.3 7.3.8 6.1 1.6c-1.2.8-2.1 1.9-2.8 3.1-.7 1.2-1.2 2.5-1.5 3.9-.4 1.4-.6 2.9-.8 4.3-.2 1.5-.2 3 0 4.5.2 1.4.4 2.9.8 4.3.3 1.4.8 2.7 1.5 3.9.7 1.2 1.6 2.3 2.8 3.1 1.2.8 2.6 1.3 4.1 1.5 1.5.2 3 .2 4.5 0 1.5-.2 2.9-.7 4.1-1.5 1.2-.8 2.1-1.9 2.8-3.1.7-1.2 1.2-2.5 1.5-3.9.4-1.4.6-2.9.8-4.3.2-1.5.2-3 0-4.5zM9.1 18.4l8.8-5.1c.2-.1.2-.4 0-.5L9.1 7.6c-.2-.1-.4 0-.4.2v10.4c0 .2.2.3.4.2z"/>
-                          </svg>
-                        </div>
-                        <h3 className="text-2xl font-bold mb-3 text-white">Vimeo動画</h3>
-                        <p className="text-gray-300 mb-2 text-lg">{video.title}</p>
-                        <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto leading-relaxed">
-                          {video.description || 'この動画をVimeoで視聴できます。高品質な動画体験をお楽しみください。'}
-                        </p>
-                        <a 
-                          href={video.videoUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-lg shadow-lg transform hover:scale-105"
-                          onClick={() => {
-                            setWatchedPercentage(100);
-                            toast.success('Vimeoで動画を開きました！');
-                          }}
-                        >
-                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
-                          </svg>
-                          Vimeoで視聴する
-                        </a>
-                        <div className="mt-6 pt-4 border-t border-gray-600">
-                          <p className="text-xs text-gray-500">
-                            📱 新しいタブで高品質動画を視聴 | 🎥 Vimeoの快適な視聴環境
+                // Try to embed first, fallback to direct link if it fails
+                if (vimeoEmbedFailed) {
+                  return (
+                    <div className="w-full h-full bg-black rounded-2xl overflow-hidden relative">
+                      <div className="w-full h-full flex items-center justify-center text-white">
+                        <div className="text-center p-8">
+                          <div className="mb-6">
+                            <svg className="w-20 h-20 mx-auto mb-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23.9 12.9c-.2-1.4-.4-2.9-.8-4.3-.3-1.4-.8-2.7-1.5-3.9-.7-1.2-1.6-2.3-2.8-3.1C17.6.8 16.2.3 14.7.1c-1.5-.2-3-.2-4.5 0C8.7.3 7.3.8 6.1 1.6c-1.2.8-2.1 1.9-2.8 3.1-.7 1.2-1.2 2.5-1.5 3.9-.4 1.4-.6 2.9-.8 4.3-.2 1.5-.2 3 0 4.5.2 1.4.4 2.9.8 4.3.3 1.4.8 2.7 1.5 3.9.7 1.2 1.6 2.3 2.8 3.1 1.2.8 2.6 1.3 4.1 1.5 1.5.2 3 .2 4.5 0 1.5-.2 2.9-.7 4.1-1.5 1.2-.8 2.1-1.9 2.8-3.1.7-1.2 1.2-2.5 1.5-3.9.4-1.4.6-2.9.8-4.3.2-1.5.2-3 0-4.5zM9.1 18.4l8.8-5.1c.2-.1.2-.4 0-.5L9.1 7.6c-.2-.1-.4 0-.4.2v10.4c0 .2.2.3.4.2z"/>
+                            </svg>
+                          </div>
+                          <h3 className="text-2xl font-bold mb-3 text-white">Vimeo動画</h3>
+                          <p className="text-gray-300 mb-2 text-lg">{video.title}</p>
+                          <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto leading-relaxed">
+                            この動画は埋め込み制限されています。Vimeoで直接ご視聴ください。
                           </p>
+                          <a 
+                            href={video.videoUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-lg shadow-lg transform hover:scale-105"
+                            onClick={() => {
+                              setWatchedPercentage(100);
+                              toast.success('Vimeoで動画を開きました！');
+                            }}
+                          >
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+                            </svg>
+                            Vimeoで視聴する
+                          </a>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  );
+                }
+
+                return (
+                  <iframe
+                    className="w-full h-full rounded-2xl"
+                    src={embedUrl}
+                    title={video.title}
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                    allowFullScreen
+                    onLoad={(e) => {
+                      console.log('Vimeo iframe loaded successfully');
+                      setTimeout(() => {
+                        setWatchedPercentage(100);
+                        toast.success('Vimeo動画を表示しました！');
+                      }, 1000);
+                    }}
+                    onError={(e) => {
+                      console.log('Vimeo embed failed, switching to fallback');
+                      setVimeoEmbedFailed(true);
+                    }}
+                  />
                 );
               } else {
                 return (
