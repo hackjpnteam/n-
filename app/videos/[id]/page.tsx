@@ -191,21 +191,43 @@ export default function VideoPage() {
                     </div>
                   );
                 }
+                
                 return (
-                  <iframe
-                    className="w-full h-full rounded-2xl"
-                    src={`https://player.vimeo.com/video/${videoId}?badge=0&autopause=0&player_id=0&app_id=58479`}
-                    title={video.title}
-                    frameBorder="0"
-                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
-                    allowFullScreen
-                    onLoad={() => {
-                      setTimeout(() => {
-                        setWatchedPercentage(100);
-                        toast.success('Vimeo動画を表示しました！');
-                      }, 1000);
-                    }}
-                  />
+                  <div className="w-full h-full bg-black rounded-2xl overflow-hidden">
+                    <iframe
+                      className="w-full h-full"
+                      src={`https://player.vimeo.com/video/${videoId}`}
+                      title={video.title}
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      onLoad={() => {
+                        setTimeout(() => {
+                          setWatchedPercentage(100);
+                          toast.success('Vimeo動画を表示しました！');
+                        }, 1000);
+                      }}
+                      onError={(e) => {
+                        console.log('Vimeo embed failed, showing fallback');
+                        const iframe = e.currentTarget;
+                        const parent = iframe.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center text-white">
+                              <div class="text-center p-8">
+                                <p class="text-lg mb-4">この動画は埋め込み再生が制限されています</p>
+                                <p class="text-sm text-gray-300 mb-4">動画の公開設定により、このサイトでの再生ができません。</p>
+                                <a href="${video.videoUrl}" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                  Vimeoで直接視聴する
+                                </a>
+                              </div>
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
+                  </div>
                 );
               } else {
                 return (
