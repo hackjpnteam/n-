@@ -28,15 +28,37 @@ export default function VideoPage() {
 
   // Vimeo URLからvideo IDを取得する関数
   const getVimeoVideoId = (url: string): string | null => {
-    const regExp = /(?:vimeo)\.com.*(?:videos|video|channels|)\/([\d]+)/i;
-    const match = url.match(regExp);
-    return match ? match[1] : null;
+    // Various Vimeo URL formats
+    const patterns = [
+      /(?:vimeo)\.com\/(?:video\/)?(\d+)/i,
+      /player\.vimeo\.com\/video\/(\d+)/i,
+      /vimeo\.com\/(\d+)/i
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        console.log('Vimeo ID extracted:', match[1]);
+        return match[1];
+      }
+    }
+    
+    console.log('Failed to extract Vimeo ID from:', url);
+    return null;
   };
 
   // 動画の種類を判定する関数
   const getVideoType = (url: string): 'youtube' | 'vimeo' | 'unknown' => {
-    if (getYouTubeVideoId(url)) return 'youtube';
-    if (getVimeoVideoId(url)) return 'vimeo';
+    console.log('Checking video type for URL:', url);
+    if (getYouTubeVideoId(url)) {
+      console.log('Detected YouTube video');
+      return 'youtube';
+    }
+    if (getVimeoVideoId(url)) {
+      console.log('Detected Vimeo video');
+      return 'vimeo';
+    }
+    console.log('Unknown video type');
     return 'unknown';
   };
 
@@ -159,13 +181,23 @@ export default function VideoPage() {
                 );
               } else if (videoType === 'vimeo') {
                 const videoId = getVimeoVideoId(video.videoUrl);
+                if (!videoId) {
+                  return (
+                    <div className="w-full h-full flex items-center justify-center text-white">
+                      <div className="text-center">
+                        <p className="text-lg mb-2">Vimeo動画IDを取得できませんでした</p>
+                        <p className="text-sm text-gray-300">URL: {video.videoUrl}</p>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <iframe
                     className="w-full h-full rounded-2xl"
-                    src={`https://player.vimeo.com/video/${videoId}?h=0`}
+                    src={`https://player.vimeo.com/video/${videoId}?badge=0&autopause=0&player_id=0&app_id=58479`}
                     title={video.title}
                     frameBorder="0"
-                    allow="autoplay; fullscreen; picture-in-picture"
+                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
                     allowFullScreen
                     onLoad={() => {
                       setTimeout(() => {
