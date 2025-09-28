@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, updateUserProfile } from '@/lib/session';
+import { verifyAuthSimple } from '@/lib/auth-simple';
 
 
 export const dynamic = 'force-dynamic';
@@ -7,20 +8,38 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   console.log('Profile API endpoint reached - GET request');
   try {
-    // Get current user from session
-    const user = await getCurrentUser();
+    // Try simple auth first for better compatibility
+    const authResult = await verifyAuthSimple(request);
     
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!authResult.success) {
+      // Fallback to NextAuth session
+      const user = await getCurrentUser();
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      
+      // Return user profile (without password hash)
+      const { passwordHash, ...userWithoutPassword } = user as any;
+      return NextResponse.json({
+        user: userWithoutPassword
+      });
     }
 
-    // Return user profile (without password hash)
-    const { passwordHash, ...userWithoutPassword } = user as any;
+    // Return user profile from simple auth (without password hash)
+    const { passwordHash, ...userWithoutPassword } = authResult.user.toObject ? authResult.user.toObject() : authResult.user;
     return NextResponse.json({
-      user: userWithoutPassword
+      user: {
+        id: userWithoutPassword._id?.toString() || userWithoutPassword.id,
+        name: userWithoutPassword.name,
+        email: userWithoutPassword.email,
+        role: userWithoutPassword.role,
+        createdAt: userWithoutPassword.createdAt,
+        profile: userWithoutPassword.profile || {}
+      }
     });
 
   } catch (error) {
@@ -35,14 +54,23 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   console.log('Profile API endpoint reached - PUT request');
   try {
-    // Get current user from session
-    const user = await getCurrentUser();
+    // Try simple auth first for better compatibility
+    const authResult = await verifyAuthSimple(request);
+    let userId: string;
     
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!authResult.success) {
+      // Fallback to NextAuth session
+      const user = await getCurrentUser();
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      userId = user.id;
+    } else {
+      userId = authResult.user._id?.toString() || authResult.user.id;
     }
 
     // Get profile data from request
@@ -50,7 +78,7 @@ export async function PUT(request: NextRequest) {
     console.log('Received profile data:', profileData);
 
     // Update user profile
-    const updatedUser = await updateUserProfile(user.id, profileData);
+    const updatedUser = await updateUserProfile(userId, profileData);
 
     if (!updatedUser) {
       return NextResponse.json(

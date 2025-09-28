@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongoDB from '@/lib/mongodb';
 import { auth } from '@/auth';
+import { verifyAuthSimple } from '@/lib/auth-simple';
 import Video from '@/models/Video';
 
 export const dynamic = 'force-dynamic';
@@ -10,13 +11,18 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    // Try simple auth first for better compatibility
+    const authResult = await verifyAuthSimple(request);
+    
+    if (!authResult.success) {
+      // Fallback to NextAuth session
+      const session = await auth();
+      if (!session?.user) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
     }
 
     await connectToMongoDB();

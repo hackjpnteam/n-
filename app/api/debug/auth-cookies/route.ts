@@ -95,12 +95,7 @@ export async function GET(request: NextRequest) {
         details: allCookies.map(c => ({
           name: c.name,
           hasValue: !!c.value,
-          length: c.value?.length || 0,
-          httpOnly: c.httpOnly,
-          secure: c.secure,
-          sameSite: c.sameSite,
-          domain: c.domain,
-          path: c.path,
+          length: c.value?.length || 0
         }))
       },
       nextAuth: {
