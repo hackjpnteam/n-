@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         } catch (jwtError) {
           jwtAnalysis.push({
             tokenName,
-            error: jwtError.message,
+            error: jwtError instanceof Error ? jwtError.message : String(jwtError),
             tokenLength: token.length
           });
         }
