@@ -23,7 +23,6 @@ export default function EditVideoPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    durationSec: 0,
     thumbnailUrl: '',
     videoUrl: '',
     instructor: '',
@@ -163,18 +162,10 @@ export default function EditVideoPage({ params }: { params: { id: string } }) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    if (name === 'durationSec') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: parseInt(value) || 0
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   if (loading) {
@@ -248,20 +239,6 @@ export default function EditVideoPage({ params }: { params: { id: string } }) {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            動画時間（分）
-          </label>
-          <input
-            type="number"
-            name="durationMin"
-            value={Math.floor(formData.durationSec / 60)}
-            onChange={(e) => setFormData(prev => ({ ...prev, durationSec: parseInt(e.target.value) * 60 || 0 }))}
-            min="0"
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

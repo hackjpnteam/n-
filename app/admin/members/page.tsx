@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaUsers, FaEdit, FaEye, FaSearch, FaFilter, FaDownload, FaUserShield, FaUserCog } from 'react-icons/fa';
+import { FaUser, FaVideo, FaCheckCircle, FaClock, FaTrophy, FaBook, FaChartLine, FaUsers, FaEdit, FaEye, FaSearch, FaFilter, FaDownload, FaUserShield, FaUserCog, FaTrash } from 'react-icons/fa';
 import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import toast from 'react-hot-toast';
 
@@ -82,6 +82,40 @@ function MembersContent() {
     } finally {
       setLoading(false);
       console.log('🏁 [FETCH-MEMBERS] Completed');
+    }
+  };
+
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`${memberName}を削除しますか？この操作は取り消せません。`)) {
+      return;
+    }
+
+    try {
+      console.log(`🗑️ [DELETE-MEMBER] Deleting ${memberName} (${memberId})`);
+      
+      const response = await fetch(`/api/admin/members/${memberId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      console.log(`📡 [DELETE-MEMBER] Response status:`, response.status);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error(`❌ [DELETE-MEMBER] Error response:`, errorData);
+        throw new Error('メンバーの削除に失敗しました');
+      }
+
+      const result = await response.json();
+      console.log(`✅ [DELETE-MEMBER] Success:`, result);
+
+      // Update local state immediately
+      setMembers(prevMembers => prevMembers.filter(member => member.id !== memberId));
+      toast.success(`${memberName}を削除しました`);
+      
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      toast.error('メンバーの削除に失敗しました');
     }
   };
 
@@ -468,6 +502,13 @@ function MembersContent() {
                           <FaUserShield />
                         </button>
                       )}
+                      <button 
+                        onClick={() => handleDeleteMember(member.id, member.name)}
+                        className="text-red-600 hover:text-red-900 p-1" 
+                        title="メンバーを削除"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
                   </td>
                 </tr>

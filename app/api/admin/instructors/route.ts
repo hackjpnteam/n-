@@ -65,3 +65,46 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    console.log('🚀 [INSTRUCTOR-GET] Fetching instructors...');
+    
+    // Check admin authentication
+    const authResult = await verifyAdminAuthSimple(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || 'Authentication failed' },
+        { status: authResult.status || 500 }
+      );
+    }
+    
+    // Connect to MongoDB
+    await connectToMongoDB();
+    
+    // Fetch all instructors from MongoDB
+    const instructors = await Instructor.find({})
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    console.log(`✅ [INSTRUCTOR-GET] Found ${instructors.length} instructors`);
+    
+    return NextResponse.json({
+      instructors: instructors.map((instructor: any) => ({
+        _id: instructor._id.toString(),
+        name: instructor.name,
+        title: instructor.title,
+        bio: instructor.bio,
+        avatarUrl: instructor.avatarUrl,
+        tags: instructor.tags,
+        createdAt: instructor.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching instructors:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch instructors' },
+      { status: 500 }
+    );
+  }
+}

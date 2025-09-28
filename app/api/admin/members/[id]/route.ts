@@ -43,10 +43,10 @@ export async function DELETE(
       );
     }
 
-    // Prevent deletion of admin users
-    if (member.role === 'admin') {
+    // Prevent self-deletion
+    if (currentUser._id.toString() === memberId) {
       return NextResponse.json(
-        { error: 'Cannot delete admin users' },
+        { error: '自分自身を削除することはできません' },
         { status: 400 }
       );
     }
@@ -54,7 +54,14 @@ export async function DELETE(
     // Delete the user
     await User.findByIdAndDelete(memberId);
     
-    return NextResponse.json({ message: 'Member deleted successfully' });
+    return NextResponse.json({ 
+      message: 'メンバーを削除しました',
+      deleted: {
+        id: memberId,
+        name: member.name,
+        email: member.email
+      }
+    });
   } catch (error) {
     console.error('Error deleting member:', error);
     return NextResponse.json(

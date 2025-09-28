@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaTimes, FaUpload, FaImage } from 'react-icons/fa';
-import { mockInstructors } from '@/lib/mockData';
 
 interface AddVideoModalProps {
   isOpen: boolean;
@@ -22,6 +21,33 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
+  const [instructors, setInstructors] = useState<any[]>([]);
+  const [loadingInstructors, setLoadingInstructors] = useState(false);
+
+  // Fetch instructors from API
+  useEffect(() => {
+    if (isOpen) {
+      fetchInstructors();
+    }
+  }, [isOpen]);
+
+  const fetchInstructors = async () => {
+    setLoadingInstructors(true);
+    try {
+      const response = await fetch('/api/admin/instructors');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched instructors:', data.instructors);
+        setInstructors(data.instructors || []);
+      } else {
+        console.error('Failed to fetch instructors');
+      }
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
+    } finally {
+      setLoadingInstructors(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -82,8 +108,11 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const instructor = mockInstructors.find(i => i._id === formData.instructorId);
-    if (!instructor) return;
+    const instructor = instructors.find(i => i._id === formData.instructorId);
+    if (!instructor) {
+      alert('ゲスト講師を選択してください');
+      return;
+    }
 
     // Upload thumbnail if file is selected
     const thumbnailUrl = await uploadThumbnail();
@@ -230,9 +259,12 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
                   value={formData.instructorId}
                   onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-theme-500 focus:border-transparent"
+                  disabled={loadingInstructors}
                 >
-                  <option value="">ゲストを選択</option>
-                  {mockInstructors.map((instructor) => (
+                  <option value="">
+                    {loadingInstructors ? '読み込み中...' : 'ゲストを選択'}
+                  </option>
+                  {instructors.map((instructor) => (
                     <option key={instructor._id} value={instructor._id}>
                       {instructor.name}
                     </option>
