@@ -172,9 +172,9 @@ export const authConfig: NextAuthConfig = {
         return `${baseUrl}/api/auth/google-success`;
       }
       
-      // Only redirect auth callbacks to /mypage to prevent unwanted admin redirects
-      if (url.includes('/api/auth/callback')) {
-        console.log('🔄 Auth callback redirect to /mypage');
+      // Only redirect OAuth callbacks to /mypage, but allow direct navigation
+      if (url.includes('/api/auth/callback') && url.includes('google')) {
+        console.log('🔄 Google OAuth callback redirect to /mypage');
         return `${baseUrl}/mypage`;
       }
       
@@ -190,14 +190,14 @@ export const authConfig: NextAuthConfig = {
         return url;
       }
       
-      // For base URL or root, default to mypage
+      // For base URL or root, allow access to homepage
       if (url === baseUrl || url === `${baseUrl}/`) {
-        console.log('🔄 Default redirect to /mypage');
-        return `${baseUrl}/mypage`;
+        console.log('🔄 Allow access to homepage');
+        return `${baseUrl}/`;
       }
       
-      // Default fallback to the requested URL or mypage
-      const finalUrl = url.startsWith(baseUrl) ? url : `${baseUrl}/mypage`;
+      // Default fallback to the requested URL or homepage  
+      const finalUrl = url.startsWith(baseUrl) ? url : `${baseUrl}/`;
       console.log('🔄 Fallback redirect:', finalUrl);
       return finalUrl;
     },
