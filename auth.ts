@@ -164,16 +164,8 @@ export const authConfig: NextAuthConfig = {
     async redirect({ url, baseUrl }) {
       console.log('🔄 Redirect callback - url:', url, 'baseUrl:', baseUrl);
       
-      // Check for Google OAuth callback redirect to mypage
-      if (url.includes('/mypage') && !url.includes('api/auth/callback')) {
-        // This is the final redirect after Google OAuth - check the previous flow
-        console.log('🔄 Final mypage redirect detected - possibly from Google OAuth');
-        // We need to get actual user data - redirect to a generic handler
-        return `${baseUrl}/api/auth/google-success`;
-      }
-      
-      // Only redirect OAuth callbacks to /mypage, but allow direct navigation
-      if (url.includes('/api/auth/callback') && url.includes('google')) {
+      // Only redirect Google OAuth callbacks to /mypage  
+      if (url.includes('/api/auth/callback/google')) {
         console.log('🔄 Google OAuth callback redirect to /mypage');
         return `${baseUrl}/mypage`;
       }
@@ -190,16 +182,9 @@ export const authConfig: NextAuthConfig = {
         return url;
       }
       
-      // For base URL or root, allow access to homepage
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        console.log('🔄 Allow access to homepage');
-        return `${baseUrl}/`;
-      }
-      
-      // Default fallback to the requested URL or homepage  
-      const finalUrl = url.startsWith(baseUrl) ? url : `${baseUrl}/`;
-      console.log('🔄 Fallback redirect:', finalUrl);
-      return finalUrl;
+      // Default fallback to the requested URL
+      console.log('🔄 Fallback redirect:', url);
+      return url;
     },
     async jwt({ token, account, user, trigger }) {
       console.log('🔥 JWT callback - trigger:', trigger);
@@ -248,26 +233,6 @@ export const authConfig: NextAuthConfig = {
         }
         
         console.log('✅ JWT callback - Token after processing:', JSON.stringify(token, null, 2));
-        
-        // 🔥 CRITICAL FIX: Create auth-simple session directly in JWT callback
-        if (account?.provider === 'google' && token.email) {
-          console.log('🔥 Creating auth-simple session in JWT callback for Google user');
-          try {
-            const { createSessionToken } = await import('./lib/auth-simple');
-            const sessionToken = createSessionToken({
-              id: token.userId as string,
-              email: token.email as string,
-              name: token.name as string,
-              role: token.role as string || 'user'
-            });
-            console.log('✅ Auth-simple session token created in JWT:', sessionToken.substring(0, 20) + '...');
-            
-            // Store the token in a way that can be accessed later
-            (global as any).pendingGoogleSession = sessionToken;
-          } catch (error) {
-            console.error('💥 Error creating auth-simple session in JWT:', error);
-          }
-        }
       } else {
         console.log('🔥 JWT callback - Refreshing existing token');
       }
