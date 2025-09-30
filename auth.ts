@@ -160,11 +160,9 @@ export const authConfig: NextAuthConfig = {
     error: "/auth/error",
   },
   // Ensure session creation
-  generateSessionToken: () => crypto.randomUUID(),
   callbacks: {
-    async redirect({ url, baseUrl, token }) {
+    async redirect({ url, baseUrl }) {
       console.log('🔄 Redirect callback - url:', url, 'baseUrl:', baseUrl);
-      console.log('🔄 Redirect callback - token:', token ? JSON.stringify(token, null, 2) : 'not present');
       
       // Check for Google OAuth callback redirect to mypage
       if (url.includes('/mypage') && !url.includes('api/auth/callback')) {
@@ -265,7 +263,7 @@ export const authConfig: NextAuthConfig = {
             console.log('✅ Auth-simple session token created in JWT:', sessionToken.substring(0, 20) + '...');
             
             // Store the token in a way that can be accessed later
-            global.pendingGoogleSession = sessionToken;
+            (global as any).pendingGoogleSession = sessionToken;
           } catch (error) {
             console.error('💥 Error creating auth-simple session in JWT:', error);
           }
@@ -290,10 +288,11 @@ export const authConfig: NextAuthConfig = {
             id: '',
             email: '',
             name: '',
-            role: 'user'
+            role: 'user',
+            emailVerified: null
           },
           expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        };
+        } as any;
       }
       
       if (token) {
@@ -306,8 +305,9 @@ export const authConfig: NextAuthConfig = {
             id: '',
             email: '',
             name: '',
-            role: 'user'
-          };
+            role: 'user',
+            emailVerified: null
+          } as any;
         }
         
         // Map token to session with all available data

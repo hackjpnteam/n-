@@ -37,11 +37,11 @@ export async function POST(
       );
     }
     
-    console.log(`✅ [COMPLETE] Updated completion count: ${updatedVideo.stats?.completions || 0}`);
+    console.log(`✅ [COMPLETE] Updated completion count: ${(updatedVideo.stats as any)?.completions || 0}`);
     
     return NextResponse.json({
       success: true,
-      completions: updatedVideo.stats?.completions || 0
+      completions: (updatedVideo.stats as any)?.completions || 0
     });
   } catch (error) {
     console.error('❌ [COMPLETE] Error updating completion count:', error);

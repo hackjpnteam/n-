@@ -49,13 +49,13 @@ export async function GET(request: NextRequest) {
     console.log('🎬 API: Found completed videos count:', completedVideos.length);
     console.log('🎬 API: Raw completed videos:', completedVideos.map(cv => ({
       videoId: cv.video?._id,
-      videoTitle: cv.video?.title,
+      videoTitle: (cv.video as any)?.title,
       completedAt: cv.completedAt
     })));
 
     const formattedVideos = completedVideos.map(cv => ({
-      id: cv.video._id.toString(),
       ...cv.video,
+      id: cv.video._id.toString(),
       completedAt: cv.completedAt
     }));
 
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'Video marked as completed',
       completedVideo: {
-        id: completedVideo._id.toString(),
+        id: (completedVideo._id as any).toString(),
         videoId: videoId,
         completedAt: completedVideo.completedAt
       }

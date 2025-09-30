@@ -44,7 +44,7 @@ export async function DELETE(
     }
 
     // Prevent self-deletion
-    if (currentUser._id.toString() === memberId) {
+    if ((currentUser._id as any).toString() === memberId) {
       return NextResponse.json(
         { error: '自分自身を削除することはできません' },
         { status: 400 }

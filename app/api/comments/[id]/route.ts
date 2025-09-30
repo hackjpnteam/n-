@@ -58,7 +58,7 @@ export async function PUT(
       );
     }
     
-    if (comment.user.toString() !== user._id.toString()) {
+    if (comment.user.toString() !== (user._id as any).toString()) {
       return NextResponse.json(
         { error: 'You can only edit your own comments' },
         { status: 403 }
@@ -139,7 +139,7 @@ export async function DELETE(
       );
     }
     
-    const isOwner = comment.user.toString() === user._id.toString();
+    const isOwner = comment.user.toString() === (user._id as any).toString();
     const isAdmin = user.role === 'admin';
     
     if (!isOwner && !isAdmin) {

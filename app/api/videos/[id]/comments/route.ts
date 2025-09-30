@@ -36,7 +36,7 @@ export async function GET(
       .lean();
     
     const formattedComments = comments.map(comment => ({
-      id: comment._id.toString(),
+      id: (comment._id as any).toString(),
       content: comment.content,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
@@ -127,7 +127,7 @@ export async function POST(
     });
     
     const formattedComment = {
-      id: comment._id.toString(),
+      id: (comment._id as any).toString(),
       content: comment.content,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,

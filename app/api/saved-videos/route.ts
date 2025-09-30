@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
       .lean();
 
     const formattedVideos = savedVideos.map(sv => ({
-      id: sv.video._id.toString(),
       ...sv.video,
+      id: sv.video._id.toString(),
       savedAt: sv.savedAt
     }));
 
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'Video saved successfully',
       savedVideo: {
-        id: savedVideo._id.toString(),
+        id: (savedVideo._id as any).toString(),
         videoId: videoId,
         savedAt: savedVideo.savedAt
       }
