@@ -2,64 +2,107 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
 import { FaCheckCircle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 interface CompleteButtonProps {
   videoId: string;
   defaultCompleted?: boolean;
-  onComplete?: () => void;
+  onComplete?: (newCompletionCount?: number) => void;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export default function CompleteButton({ videoId, defaultCompleted = false, onComplete }: CompleteButtonProps) {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const [isCompleted, setIsCompleted] = useState(defaultCompleted);
+  const { data: session } = useSession();
+  const [isCompleted, setIsCompleted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: progress } = useSWR(
-    session?.user ? `/api/progress?videoId=${videoId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      onSuccess: (data) => {
-        if (data?.status === 'completed') {
+  // Check if video is already completed
+  useEffect(() => {
+    const checkCompletionStatus = async () => {
+      if (session?.user) {
+        try {
+          const response = await fetch('/api/completed-videos', {
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const isVideoCompleted = data.videos?.some((v: any) => {
+              const vId = v.id || v._id;
+              return vId === videoId;
+            });
+            setIsCompleted(isVideoCompleted);
+          }
+        } catch (error) {
+          console.error('Error checking completion status:', error);
+        }
+      } else {
+        // Check localStorage for non-logged users
+        const localProgress = JSON.parse(localStorage.getItem('videoProgress') || '{}');
+        if (localProgress[videoId]?.status === 'completed') {
           setIsCompleted(true);
         }
       }
-    }
-  );
+    };
+
+    checkCompletionStatus();
+  }, [session?.user, videoId]);
 
   const handleComplete = async () => {
-    if (isCompleted) return;
+    if (isCompleted || isLoading) return;
 
     setIsLoading(true);
     
     try {
-      // Always mark as completed locally for UI feedback
+      
+      // Update UI immediately
       setIsCompleted(true);
-      onComplete?.(); // Update progress bar to 100%
       toast.success('視聴完了を記録しました！');
 
-      // Try to save to server if user is logged in
-      if (session?.user) {
-        const response = await fetch('/api/progress', {
+      // Update video completion count
+      try {
+        const completeResponse = await fetch(`/api/videos/${videoId}/complete`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            videoId,
-            status: 'completed',
-          }),
+          headers: { 'Content-Type': 'application/json' }
         });
+        
+        if (completeResponse.ok) {
+          const completeData = await completeResponse.json();
+          onComplete?.(completeData.completions);
+        } else {
+          onComplete?.();
+        }
+      } catch (completeError) {
+        console.error('Error updating video completion count:', completeError);
+        onComplete?.();
+      }
 
-        if (!response.ok) {
-          console.warn('Failed to save progress to server, but marked as completed locally');
+      // Save completion to database or localStorage
+      if (session?.user) {
+        try {
+          // Save to completed videos API
+          await fetch('/api/completed-videos', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ videoId }),
+          });
+
+          // Save to progress API
+          await fetch('/api/progress', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ videoId, status: 'completed' }),
+          });
+        } catch (error) {
+          console.error('Error saving to server:', error);
         }
       } else {
         // Store in localStorage for non-logged users
@@ -69,21 +112,12 @@ export default function CompleteButton({ videoId, defaultCompleted = false, onCo
       }
     } catch (error) {
       console.error('Error marking video as completed:', error);
-      // Don't show error to user since local completion worked
+      setIsCompleted(false); // Revert on error
+      toast.error('完了の記録に失敗しました');
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Check localStorage for completion status if not logged in
-  useEffect(() => {
-    if (!session?.user && !isCompleted) {
-      const localProgress = JSON.parse(localStorage.getItem('videoProgress') || '{}');
-      if (localProgress[videoId]?.status === 'completed') {
-        setIsCompleted(true);
-      }
-    }
-  }, [session?.user, videoId, isCompleted]);
 
   return (
     <button
@@ -97,6 +131,7 @@ export default function CompleteButton({ videoId, defaultCompleted = false, onCo
             : 'btn-primary'
         }
       `}
+      style={{ position: 'relative', zIndex: 1 }}
     >
       {isCompleted ? (
         <>

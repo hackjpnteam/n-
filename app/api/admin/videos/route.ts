@@ -51,7 +51,10 @@ export async function POST(request: NextRequest) {
       instructor: {
         _id: videoData.instructor._id,
         name: videoData.instructor.name,
-        avatarUrl: videoData.instructor.avatarUrl || 'https://via.placeholder.com/150'
+        title: videoData.instructor.title || '',
+        bio: videoData.instructor.bio || '',
+        avatarUrl: videoData.instructor.avatarUrl || '/guest-instructor-avatar.png',
+        tags: videoData.instructor.tags || []
       },
       stats: {
         likes: 0

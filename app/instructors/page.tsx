@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import InstructorCard from '@/components/instructors/InstructorCard';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 export default function InstructorsPage() {
   const [instructors, setInstructors] = useState([]);
@@ -13,6 +13,7 @@ export default function InstructorsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [showAllTags, setShowAllTags] = useState(false);
 
   useEffect(() => {
     fetchInstructors();
@@ -118,7 +119,7 @@ export default function InstructorsPage() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {availableTags.map(tag => (
+            {(showAllTags ? availableTags : availableTags.slice(0, 10)).map(tag => (
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
@@ -131,6 +132,24 @@ export default function InstructorsPage() {
                 {tag}
               </button>
             ))}
+            {availableTags.length > 10 && (
+              <button
+                onClick={() => setShowAllTags(!showAllTags)}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-theme-600 hover:bg-gray-200 transition-colors"
+              >
+                {showAllTags ? (
+                  <>
+                    <FaChevronUp className="text-xs" />
+                    閉じる
+                  </>
+                ) : (
+                  <>
+                    <FaChevronDown className="text-xs" />
+                    もっと見る ({availableTags.length - 10})
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 

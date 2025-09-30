@@ -34,18 +34,41 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
   const fetchInstructors = async () => {
     setLoadingInstructors(true);
     try {
-      const response = await fetch('/api/admin/instructors');
+      console.log('🚀 [MODAL] Starting fetchInstructors...');
+      const response = await fetch('/api/instructors?limit=1000&page=1', {
+        credentials: 'include'
+      });
+      console.log('📡 [MODAL] Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched instructors:', data.instructors);
+        console.log('📊 [MODAL] API Response data:', data);
+        console.log('👥 [MODAL] Instructors count:', data.instructors?.length || 0);
+        console.log('🔍 [MODAL] Looking for "太平" or "大平"...');
+        
+        if (data.instructors) {
+          const taiheInstructor = data.instructors.find((i: any) => 
+            i.name.includes('太平') || i.name.includes('大平')
+          );
+          if (taiheInstructor) {
+            console.log('✅ [MODAL] Found instructor:', taiheInstructor);
+          } else {
+            console.log('❌ [MODAL] "太平"/"大平" instructor not found in response');
+            console.log('📋 [MODAL] All instructor names:', data.instructors.map((i: any) => i.name));
+          }
+        }
+        
         setInstructors(data.instructors || []);
+        console.log('✅ [MODAL] Instructors state updated');
       } else {
-        console.error('Failed to fetch instructors');
+        const errorText = await response.text();
+        console.error('❌ [MODAL] Failed to fetch instructors:', response.status, errorText);
       }
     } catch (error) {
-      console.error('Error fetching instructors:', error);
+      console.error('❌ [MODAL] Error fetching instructors:', error);
     } finally {
       setLoadingInstructors(false);
+      console.log('🏁 [MODAL] fetchInstructors completed');
     }
   };
 
@@ -114,6 +137,8 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
       return;
     }
 
+    console.log('🎯 [MODAL] Selected instructor data:', instructor);
+
     // Upload thumbnail if file is selected
     const thumbnailUrl = await uploadThumbnail();
 
@@ -124,7 +149,10 @@ export default function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalP
       instructor: {
         _id: instructor._id,
         name: instructor.name,
-        avatarUrl: instructor.avatarUrl
+        title: instructor.title || '',
+        bio: instructor.bio || '',
+        avatarUrl: instructor.avatarUrl || instructor.avatar || '/guest-instructor-avatar.png',
+        tags: instructor.tags || []
       },
       thumbnailUrl: thumbnailUrl,
       sourceUrl: formData.videoUrl

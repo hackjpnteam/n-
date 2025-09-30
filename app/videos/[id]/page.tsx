@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSimpleAuth } from '@/lib/useSimpleAuth';
 import Link from 'next/link';
 import CompleteButton from '@/components/videos/CompleteButton';
+import SaveButton from '@/components/videos/SaveButton';
+import CommentSection from '@/components/videos/CommentSection';
 import { FaBook, FaUser, FaClock, FaEye, FaCheckCircle, FaPlayCircle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
@@ -16,8 +18,8 @@ export default function VideoPage() {
   const [instructor, setInstructor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [watchedPercentage, setWatchedPercentage] = useState(0);
-  const [hasQuiz, setHasQuiz] = useState(false);
   const [vimeoEmbedFailed, setVimeoEmbedFailed] = useState(false);
+  const [completionCount, setCompletionCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // YouTube URLからvideo IDを取得する関数
@@ -77,8 +79,11 @@ export default function VideoPage() {
   useEffect(() => {
     if (params.id && !authLoading) {
       fetchVideoDetails();
+      if (user) {
+        fetchProgress();
+      }
     }
-  }, [params.id, authLoading]);
+  }, [params.id, authLoading, user]);
 
   const fetchVideoDetails = async () => {
     setLoading(true);
@@ -91,6 +96,7 @@ export default function VideoPage() {
         const data = await response.json();
         setVideo(data);
         setInstructor(data.instructor);
+        setCompletionCount(data.stats?.completions || 0);
         
         // Record view in watch history (only if authenticated)
         if (user) {
@@ -100,12 +106,28 @@ export default function VideoPage() {
         console.error('Failed to fetch video');
       }
       
-      // Check if quiz exists
-      setHasQuiz(false); // Hide quiz button for all videos
     } catch (error) {
       console.error('Error fetching video details:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const response = await fetch(`/api/progress?videoId=${params.id}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.watchedSeconds && video?.duration) {
+          const percentage = Math.min((data.watchedSeconds / video.duration) * 100, 100);
+          setWatchedPercentage(Math.round(percentage));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching progress:', error);
     }
   };
 
@@ -182,10 +204,7 @@ export default function VideoPage() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                     onLoad={() => {
-                      setTimeout(() => {
-                        setWatchedPercentage(100);
-                        toast.success('YouTube動画を表示しました！');
-                      }, 1000);
+                      console.log('YouTube動画を読み込みました');
                     }}
                   />
                 );
@@ -232,8 +251,7 @@ export default function VideoPage() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-lg shadow-lg transform hover:scale-105"
                             onClick={() => {
-                              setWatchedPercentage(100);
-                              toast.success('Vimeoで動画を開きました！');
+                              console.log('Vimeoリンクをクリックしました');
                             }}
                           >
                             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -257,10 +275,6 @@ export default function VideoPage() {
                     allowFullScreen
                     onLoad={(e) => {
                       console.log('Vimeo iframe loaded successfully');
-                      setTimeout(() => {
-                        setWatchedPercentage(100);
-                        toast.success('Vimeo動画を表示しました！');
-                      }, 1000);
                     }}
                     onError={(e) => {
                       console.log('Vimeo embed failed, switching to fallback');
@@ -285,16 +299,8 @@ export default function VideoPage() {
           
           <div className="flex items-center gap-6 mb-6 text-sm text-gray-600">
             <span className="flex items-center gap-1">
-              <FaEye className="text-theme-500" />
-              {video.stats?.views || 0}回視聴
-            </span>
-            <span className="flex items-center gap-1">
-              <FaClock className="text-green-500" />
-              {Math.floor(video.durationSec / 60)}分
-            </span>
-            <span className="flex items-center gap-1">
               <FaCheckCircle className="text-purple-500" />
-              {video.stats?.completions || 0}人完了
+              {completionCount}人完了
             </span>
           </div>
 
@@ -337,29 +343,47 @@ export default function VideoPage() {
 
           <div className="flex flex-wrap gap-4">
             {user ? (
-              <CompleteButton 
-                videoId={video._id} 
-                onComplete={() => setWatchedPercentage(100)}
-              />
+              <>
+                <CompleteButton 
+                  videoId={video._id} 
+                  onComplete={(newCompletionCount) => {
+                    setWatchedPercentage(100);
+                    if (newCompletionCount !== undefined) {
+                      setCompletionCount(newCompletionCount);
+                    } else {
+                      setCompletionCount(prev => prev + 1);
+                    }
+                  }}
+                />
+                <SaveButton 
+                  videoId={video._id}
+                  videoData={{
+                    title: video.title,
+                    instructor: instructor?.name,
+                    thumbnailUrl: video.thumbnailUrl
+                  }}
+                />
+              </>
             ) : (
-              <Link
-                href="/auth/login"
-                className="rounded-2xl px-6 py-3 font-semibold shadow-lg bg-gradient-to-r from-theme-600 to-theme-700 text-white hover:from-theme-700 hover:to-theme-800 transition-all flex items-center gap-2 transform hover:scale-105"
-              >
-                <FaCheckCircle className="text-lg" />
-                ログインして進捗を記録
-              </Link>
+              <>
+                <Link
+                  href="/auth/login"
+                  className="rounded-2xl px-6 py-3 font-semibold shadow-lg bg-gradient-to-r from-theme-600 to-theme-700 text-white hover:from-theme-700 hover:to-theme-800 transition-all flex items-center gap-2 transform hover:scale-105"
+                >
+                  <FaCheckCircle className="text-lg" />
+                  ログインして進捗を記録
+                </Link>
+                <SaveButton 
+                  videoId={video._id}
+                  videoData={{
+                    title: video.title,
+                    instructor: instructor?.name,
+                    thumbnailUrl: video.thumbnailUrl
+                  }}
+                />
+              </>
             )}
             
-            {hasQuiz && user && (
-              <Link
-                href={`/videos/${video._id}/quiz`}
-                className="rounded-2xl px-6 py-3 font-semibold shadow-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition-all flex items-center gap-2 transform hover:scale-105"
-              >
-                <FaBook className="text-lg" />
-                理解度テストを受ける
-              </Link>
-            )}
           </div>
 
           {/* 完了条件の説明 */}
@@ -400,13 +424,27 @@ export default function VideoPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">{instructor.name || 'Unknown Instructor'}</p>
-                    {instructor.title && (
+                    {instructor.title && instructor.title !== 'n/a' && (
                       <p className="text-sm text-gray-600">{instructor.title}</p>
                     )}
                   </div>
                 </div>
-                {instructor.bio && (
+                {instructor.bio && instructor.bio !== 'n/a' && (
                   <p className="text-sm text-gray-700 mt-3">{instructor.bio}</p>
+                )}
+                {instructor.tags && instructor.tags.length > 0 && (
+                  <div className="mt-3">
+                    <div className="flex flex-wrap gap-1">
+                      {instructor.tags.map((tag: string, index: number) => (
+                        <span 
+                          key={index}
+                          className="px-2 py-1 bg-theme-100 text-theme-800 text-xs rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </Link>
             </div>
@@ -426,6 +464,11 @@ export default function VideoPage() {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Comment Section */}
+      <div className="mt-8">
+        <CommentSection videoId={video._id} />
       </div>
     </div>
   );

@@ -18,19 +18,33 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check authentication using simple auth session API
+  // Check authentication using NextAuth and auth-simple session APIs
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Try NextAuth session first
+        const nextAuthResponse = await fetch('/api/auth/session');
+        const nextAuthData = await nextAuthResponse.json();
+        
+        if (nextAuthData && nextAuthData.user) {
+          console.log('✅ NextAuth session found on login page:', nextAuthData.user);
+          setSession(nextAuthData);
+          router.push('/mypage');
+          return;
+        }
+        
+        // Fallback to auth-simple session
         const response = await fetch('/api/auth-simple/session');
         const sessionData = await response.json();
         
         if (sessionData && sessionData.user) {
+          console.log('✅ Auth-simple session found on login page:', sessionData.user);
           setSession(sessionData);
-          // If already authenticated, redirect to mypage
           router.push('/mypage');
           return;
         }
+        
+        console.log('❌ No session found on login page');
         setSession(null);
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -79,31 +93,19 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      console.log('🔥 Starting Google sign in...');
+      
+      // Use redirect: true to allow normal OAuth flow
       const result = await signIn("google", { 
         callbackUrl: "/mypage",
-        redirect: false 
+        redirect: true  // Changed to true for proper OAuth flow
       });
       
-      if (result && 'error' in result && result.error) {
-        toast.error('Googleログインでエラーが発生しました: ' + result.error);
-      } else if (result && ('ok' in result || 'url' in result)) {
-        toast.success('Googleログインしました');
-        // Force session refresh
-        await getSession();
-        
-        // Wait for session to establish
-        setTimeout(async () => {
-          // Force session refresh again
-          const newSession = await getSession();
-          
-          // Redirect Google login users to mypage as well
-          window.location.href = '/mypage';
-        }, 1000);
-      }
+      console.log('🔥 SignIn result:', result);
+      
     } catch (error) {
       console.error('Google signin error:', error);
       toast.error('Googleログインでエラーが発生しました');
-    } finally {
       setIsLoading(false);
     }
   };

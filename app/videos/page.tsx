@@ -110,10 +110,6 @@ export default function VideosPage() {
                   <span>{video.instructor.name}</span>
                   <span>{Math.floor(video.durationSec / 60)}分</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
-                  <span>{video.stats.views}回視聴</span>
-                  <span>平均視聴率 {video.stats.avgWatchRate}%</span>
-                </div>
                 <div className="mt-2">
                   <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
                     {video.category}

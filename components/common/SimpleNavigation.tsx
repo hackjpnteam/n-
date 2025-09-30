@@ -132,7 +132,7 @@ export default function SimpleNavigation() {
                     className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-xl transition-all"
                   >
                     <FaUser />
-                    <span className="text-sm font-medium">マイページ</span>
+                    <span className="hidden sm:block text-sm font-medium">マイページ</span>
                   </Link>
                   {finalSession.user.role === 'admin' && (
                     <Link
@@ -140,7 +140,7 @@ export default function SimpleNavigation() {
                       className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white hover:bg-orange-600 rounded-xl transition-all"
                     >
                       <FaCog />
-                      <span className="text-sm font-medium">管理</span>
+                      <span className="hidden sm:block text-sm font-medium">管理</span>
                     </Link>
                   )}
                   <button
@@ -149,7 +149,7 @@ export default function SimpleNavigation() {
                     title="ログアウト"
                   >
                     <FaSignOutAlt />
-                    <span className="text-sm">ログアウト</span>
+                    <span className="hidden sm:block text-sm">ログアウト</span>
                   </button>
                 </div>
               ) : (
